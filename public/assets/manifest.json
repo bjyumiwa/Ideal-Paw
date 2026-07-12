@@ -1,0 +1,25 @@
+{
+  "name": "IdealPaw",
+  "short_name": "IdealPaw",
+  "description": "IdealPaw",
+  "start_url": "/osewa-research-final2026/",
+  "scope": "/osewa-research-final2026/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff8df",
+  "theme_color": "#ff8fb8",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
