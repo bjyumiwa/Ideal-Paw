@@ -1110,7 +1110,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-distribution-20260911-v32.1-day5-care-end-survey",
+    APP_VERSION: "osewa-distribution-20260922-v33-completion-branch",
     BACKUP_SCHEMA_VERSION: 1,
     BACKUP_DEBOUNCE_MS: 1800,
     // 研究ログはCloudflare Worker経由で保存します。
@@ -2154,7 +2154,7 @@
 
   function careAttentionNeeded(){
     if(!state || !state.pet_name || !state.hatch_at) return false;
-    if(["intro","consent","waiting","gift","macaron","firstPet","namePet","letter","returning","survey","result","zukan","end"].includes(state.screen)) return false;
+    if(["intro","consent","waiting","gift","macaron","firstPet","namePet","letter","returning","survey","result","incomplete","zukan","end"].includes(state.screen)) return false;
     if(state.completed_survey) return false;
     if(state.mode === "research" && currentDay() >= 4 && !state.return_completed) return false;
 
@@ -2382,6 +2382,15 @@
       return_completed_at:"",
       name_cue_days:{},
       mode:"research",
+      // 研究完遂判定：各日で「ごはん・おでかけ・なでる・きれいにする」の
+      // いずれかを1回以上行ったかを日ごとに保存します。「様子を見る」だけでは完遂扱いにしません。
+      research_day_care:{"1":0,"2":0,"3":0,"4":0,"5":0},
+      research_completion_status:"active",
+      research_completed_at:"",
+      research_incomplete_at:"",
+      research_incomplete_reason:"",
+      research_missing_days:[],
+      reward_eligible:false,
       completed_survey:false,
       survey_auto_opened_at:"",
       logs:{visits:0, feed:0, outing:0, pet:0, clean:0, look:0, actions_total:0},
@@ -2414,6 +2423,15 @@
       if(saved.revival_completed === true) merged.return_completed = true;
       if(merged.screen === "loss") merged.screen = "letter";
       if(merged.screen === "revival") merged.screen = "returning";
+      // v33以前にすでに最終アンケートまで完了している端末は、
+      // 画面を巻き戻さず既存結果を維持します。新規参加者は日別完遂判定を使用します。
+      if(saved.completed_survey === true && !saved.research_completion_status){
+        merged.research_completion_status = "legacy_survey_complete";
+      }
+      if(!merged.research_day_care || typeof merged.research_day_care !== "object"){
+        merged.research_day_care = {"1":0,"2":0,"3":0,"4":0,"5":0};
+      }
+      if(!Array.isArray(merged.research_missing_days)) merged.research_missing_days = [];
       return merged;
     }catch(e){
       // 破損した保存データがあっても削除しません。原文を別キーへ退避します。
@@ -2476,7 +2494,9 @@
       "changed_applied","renamed_after_change","memory_cues_enabled",
       "letter_shown_at","letter_departure_at","letter_care_level","letter_care_actions",
       "return_started_at","return_completed","return_completed_at","name_cue_days",
-      "mode","completed_survey","survey_auto_opened_at","logs","free_logs","zukan",
+      "mode","research_day_care","research_completion_status","research_completed_at",
+      "research_incomplete_at","research_incomplete_reason","research_missing_days","reward_eligible",
+      "completed_survey","survey_auto_opened_at","logs","free_logs","zukan",
       "tips_shown","tips_logged","screen"
     ];
     const snapshot = {};
@@ -2628,6 +2648,127 @@
     const marker = String(state.daily_care_ended_marker || "");
     return !!state.daily_care_ended_at && (marker === "research-5" || marker === currentLifeMarker());
   }
+
+  // ===========================================================
+  // v33：5日間完遂者と途中離脱者を分ける
+  // 「実際のお世話」は feed / outing / pet / clean の4種類。
+  // look（様子を見る）だけの日は、その日の完遂には数えません。
+  // ===========================================================
+  const RESEARCH_CARE_ACTIONS = ["feed","outing","pet","clean"];
+
+  function emptyResearchDayCare(){
+    return {"1":0,"2":0,"3":0,"4":0,"5":0};
+  }
+
+  function ensureResearchDayCareTracking(){
+    const current = (state.research_day_care && typeof state.research_day_care === "object")
+      ? state.research_day_care
+      : {};
+    const merged = emptyResearchDayCare();
+    for(let day=1; day<=5; day++){
+      merged[String(day)] = Math.max(0, Number(current[String(day)] || 0));
+    }
+
+    // v33導入前から参加中の端末については、端末内の既存game_actionログから
+    // 日別のお世話回数を復元します。新規参加者は下の recordResearchCareAction() で直接加算されます。
+    try{
+      const derived = emptyResearchDayCare();
+      getLocalLogs()
+        .filter(row => !state.research_id || !row.research_id || row.research_id === state.research_id)
+        .filter(row => row.event_type === "game_action")
+        .filter(row => RESEARCH_CARE_ACTIONS.includes(String(row.action || "")))
+        .forEach(row => {
+          const day = Number(row.day || 0);
+          if(day >= 1 && day <= 5) derived[String(day)] += 1;
+        });
+      for(let day=1; day<=5; day++){
+        const key = String(day);
+        merged[key] = Math.max(merged[key], Number(derived[key] || 0));
+      }
+    }catch(e){}
+
+    state.research_day_care = merged;
+    return merged;
+  }
+
+  function recordResearchCareAction(action){
+    if(state.mode !== "research" || !RESEARCH_CARE_ACTIONS.includes(action)) return;
+    const day = currentDay();
+    if(day < 1 || day > 5) return;
+    const map = ensureResearchDayCareTracking();
+    map[String(day)] = Number(map[String(day)] || 0) + 1;
+    state.research_day_care = map;
+  }
+
+  function researchDayHasSubstantiveCare(day){
+    const map = ensureResearchDayCareTracking();
+    return Number(map[String(day)] || 0) > 0;
+  }
+
+  function researchFiveDayCareComplete(){
+    if(state.research_completion_status === "legacy_survey_complete" && state.completed_survey) return true;
+    const map = ensureResearchDayCareTracking();
+    return [1,2,3,4,5].every(day => Number(map[String(day)] || 0) > 0);
+  }
+
+  function missingResearchDays(options={}){
+    if(state.mode !== "research" || !state.hatch_at || !state.care_started_at) return [];
+    const includeCurrent = !!options.includeCurrent;
+    let lastDayToCheck = Math.max(0, currentDay() - 1);
+
+    // 5日間（120時間）が終わった後は、5日目も含めて確定判定します。
+    if(researchHasEnded()) lastDayToCheck = 5;
+    if(includeCurrent) lastDayToCheck = Math.max(lastDayToCheck, currentDay());
+    lastDayToCheck = Math.min(5, lastDayToCheck);
+
+    const missing = [];
+    for(let day=1; day<=lastDayToCheck; day++){
+      if(!researchDayHasSubstantiveCare(day)) missing.push(day);
+    }
+    return missing;
+  }
+
+  function markResearchIncomplete(reason="missed_research_day", missingDays=[]){
+    if(state.mode !== "research") return;
+    const firstMark = state.research_completion_status !== "incomplete";
+    state.research_completion_status = "incomplete";
+    state.research_incomplete_at = state.research_incomplete_at || new Date().toISOString();
+    state.research_incomplete_reason = state.research_incomplete_reason || reason;
+    state.research_missing_days = Array.from(new Set([...(state.research_missing_days || []), ...missingDays])).sort((a,b)=>a-b);
+    state.reward_eligible = false;
+    state.screen = "incomplete";
+    saveState();
+
+    if(firstMark){
+      logEvent("research_incomplete", {
+        reason,
+        missing_days:state.research_missing_days,
+        research_day_care:{...ensureResearchDayCareTracking()},
+        final_survey_shown:false,
+        diagnosis_shown:false,
+        reward_eligible:false
+      });
+    }
+  }
+
+  function routeToResearchIncompleteIfNeeded(source="route_check", includeCurrent=false){
+    if(state.mode !== "research" || state.completed_survey) return false;
+
+    if(state.research_completion_status === "incomplete"){
+      state.screen = "incomplete";
+      saveState();
+      renderResearchIncomplete();
+      return true;
+    }
+
+    const missing = missingResearchDays({includeCurrent});
+    if(!missing.length) return false;
+
+    markResearchIncomplete(source, missing);
+    renderResearchIncomplete();
+    return true;
+  }
+
   let surveyTransitionTimer = null;
   let letterTransitionTimer = null;
 
@@ -2640,10 +2781,16 @@
 
     const remaining = researchDayStartMs(4) - Date.now();
     if(remaining <= 0){
-      setTimeout(() => ensureLetterReturnSequence(currentDay()), 0);
+      setTimeout(() => {
+        if(routeToResearchIncompleteIfNeeded("day4_boundary_missing_day")) return;
+        ensureLetterReturnSequence(currentDay());
+      }, 0);
       return;
     }
-    letterTransitionTimer = setTimeout(() => ensureLetterReturnSequence(4), remaining + 1000);
+    letterTransitionTimer = setTimeout(() => {
+      if(routeToResearchIncompleteIfNeeded("day4_boundary_missing_day")) return;
+      ensureLetterReturnSequence(4);
+    }, remaining + 1000);
   }
 
   function openSurveyAfterDay5(sourceHint=""){
@@ -2652,6 +2799,20 @@
     const openedByCareEnd = day5CareHasEnded();
     const openedBy120hFallback = researchHasEnded();
     if(!openedByCareEnd && !openedBy120hFallback) return false;
+
+    // 5日目を終了した時点、または120時間が経過した時点で、
+    // 5日間すべてに実際のお世話があるかを先に確認します。
+    // 未完遂者には同一性アンケート・診断・抽選対象フラグを出しません。
+    if(routeToResearchIncompleteIfNeeded(
+      openedByCareEnd ? "day5_end_missing_care_day" : "research_120h_missing_care_day",
+      openedByCareEnd
+    )) return true;
+
+    if(!researchFiveDayCareComplete()){
+      markResearchIncomplete("five_day_care_not_complete", [1,2,3,4,5].filter(day => !researchDayHasSubstantiveCare(day)));
+      renderResearchIncomplete();
+      return true;
+    }
 
     // 手紙・帰宅演出をまだ終えていない場合は、
     // 最終アンケートより先に、全員共通の手紙・帰宅演出を必ず表示する。
@@ -2662,6 +2823,9 @@
 
     if(!state.survey_auto_opened_at){
       state.survey_auto_opened_at = new Date().toISOString();
+      state.research_completion_status = "care_complete";
+      state.research_completed_at = state.research_completed_at || new Date().toISOString();
+      state.reward_eligible = false; // 最終アンケート送信後にtrueになります。
       state.screen = "survey";
       saveState();
       logEvent("survey_open", {
@@ -3157,6 +3321,7 @@
     if(s==="game") return renderGame();
     if(s==="survey") return renderSurvey();
     if(s==="result") return renderResult();
+    if(s==="incomplete") return renderResearchIncomplete();
     if(s==="zukan") return renderZukanCollection();
     if(s==="end") return renderEnd();
     renderIntro();
@@ -4066,6 +4231,12 @@
       minimum_lock_minutes:CONFIG.MIN_DAY_END_LOCK_MS / 60000
     });
 
+    // 「様子を見る」だけでその日を終えた場合、または過去日に実際のお世話がない場合は、
+    // 研究完遂者とは分け、アンケート・診断へ進ませません。
+    if(state.mode === "research" && routeToResearchIncompleteIfNeeded("day_end_missing_substantive_care", true)){
+      return;
+    }
+
     // 3日目だけは、通常の睡眠画面ではなく、ここで置き手紙を表示します。
     // 4日目になるまでは相棒に会えず、4日目になると自動的に帰ってきます。
     if(state.mode === "research" && endedDay === 3){
@@ -4194,6 +4365,7 @@
 
 
   function renderGame(action="look", choice=""){
+    if(routeToResearchIncompleteIfNeeded("game_route_missing_day")) return;
     if(openSurveyAfterDay5()) return;
     const day = currentDay();
     // 4日目に入った最初の表示では、条件差より先に全員共通の手紙・帰宅演出を出します。
@@ -4375,6 +4547,7 @@
     logBucket.actions_total += 1;
     state.daily_action_count = Number(state.daily_action_count || 0) + 1;
     if(logBucket[action] !== undefined) logBucket[action] += 1;
+    recordResearchCareAction(action);
     const eng = engagementSettings();
     if(action === "feed") updateScores(10,0,"feed");
     if(action === "outing") updateScores(9,0,"outing");
@@ -4510,6 +4683,7 @@
     logBucket.actions_total += 1;
     state.daily_action_count = Number(state.daily_action_count || 0) + 1;
     logBucket.clean += 1;
+    recordResearchCareAction("clean");
     logEvent("game_action", {day:currentDay(), action:"clean", choice:targetColor, affection:state.affection, daily_score:state.daily_score, care_meters_total:{...state.care_meters_total}, full_meter_count:state.full_meter_count, poop:state.poop, mistakes});
     saveState();
     renderGame("clean");
@@ -4582,6 +4756,11 @@
   }
 
   function renderSurvey(){
+    if(state.mode === "research" && !researchFiveDayCareComplete()){
+      const missing = [1,2,3,4,5].filter(day => !researchDayHasSubstantiveCare(day));
+      markResearchIncomplete("survey_guard_incomplete_five_day_care", missing);
+      return renderResearchIncomplete();
+    }
     const lang = L();
     const noticeOptions = lang === "en"
       ? {noticed:"I felt that something had changed", not_noticed:"I did not particularly feel a change", unsure:"I am not sure"}
@@ -4688,6 +4867,11 @@
   }
 
   function submitSurvey(){
+    if(!researchFiveDayCareComplete()){
+      const missing = [1,2,3,4,5].filter(day => !researchDayHasSubstantiveCare(day));
+      markResearchIncomplete("survey_submit_guard_incomplete_five_day_care", missing);
+      return renderResearchIncomplete();
+    }
     if(!validateSurvey()){ alert(t("missing")); return; }
     const answers = getFinalSurveyAnswers();
     const noticedParts = Array.from(document.querySelectorAll('input[name="noticed_parts"]:checked')).map(x=>x.value);
@@ -4712,11 +4896,17 @@
       likert_scale: 7
     };
     state.completed_survey = true;
+    state.research_completion_status = "survey_complete";
+    state.research_completed_at = state.research_completed_at || new Date().toISOString();
+    state.reward_eligible = true;
     state.screen = "result";
     saveState();
     logEvent("survey_submit", {
       survey: state.survey,
       logs: state.logs,
+      research_day_care:{...ensureResearchDayCareTracking()},
+      five_day_care_complete:true,
+      reward_eligible:true,
       care_meters_total: {...state.care_meters_total},
       full_meter_count: state.full_meter_count,
       source: "embedded_final_survey_in_full_index_7likert"
@@ -5573,7 +5763,76 @@
   }
 
 
+
+  function researchIncompleteText(key){
+    const lang = L();
+    const dict = {
+      title:{
+        ja:"研究パートはここまでです",
+        en:"The research part ends here",
+        "zh-CN":"研究部分到这里结束"
+      },
+      body:{
+        ja:"今回は5日間すべての日のお世話がそろっていないため、最後の同一性アンケートと相棒診断は表示しません。途中まで参加してくれて、ありがとうございました。",
+        en:"Because care was not completed on all five study days, the final identity survey and companion result are not shown. Thank you for taking part up to this point.",
+        "zh-CN":"由于五个研究日的照护没有全部完成，因此不会显示最后的同一性问卷和小伙伴结果。感谢你参与到这里。"
+      },
+      free:{
+        ja:"ここから先は研究とは別の「つづきのお世話」として、自由に遊べます。ここでの操作は研究ログには送信されません。",
+        en:"You can still play from here in Continued Care, separately from the research. Actions there are not sent as research logs.",
+        "zh-CN":"从这里开始仍可作为与研究分开的“继续照护”自由游玩。之后的操作不会作为研究日志发送。"
+      },
+      continue:{
+        ja:"つづきのお世話をする",
+        en:"Continue caring",
+        "zh-CN":"继续照护"
+      },
+      end:{
+        ja:"ここで終わる",
+        en:"Finish here",
+        "zh-CN":"在这里结束"
+      }
+    };
+    return dict[key]?.[lang] || dict[key]?.ja || key;
+  }
+
+  function renderResearchIncomplete(){
+    if(state.mode !== "research") return renderGame("look");
+    state.screen = "incomplete";
+    state.reward_eligible = false;
+    saveState();
+    root.innerHTML = `
+      <section class="card">
+        <h2>${esc(researchIncompleteText("title"))}</h2>
+        <p>${esc(researchIncompleteText("body"))}</p>
+        <div class="notice small">${esc(researchIncompleteText("free"))}</div>
+        <div class="row" style="margin-top:14px">
+          <button id="incompleteContinueFreeBtn" type="button">${esc(researchIncompleteText("continue"))}</button>
+          <button id="incompleteEndBtn" class="secondary" type="button">${esc(researchIncompleteText("end"))}</button>
+        </div>
+      </section>`;
+    $("incompleteContinueFreeBtn").addEventListener("click", enterFreeMode);
+    $("incompleteEndBtn").addEventListener("click", () => {
+      logEvent("research_incomplete_end", {
+        missing_days:state.research_missing_days || [],
+        reward_eligible:false
+      });
+      setScreen("end");
+    });
+  }
+
   function renderResult(){
+    // 新規参加者は「5日間すべて実際のお世話あり＋最終アンケート送信済み」の場合だけ診断を表示します。
+    // v33以前にすでに送信済みの既存端末は、画面を巻き戻さず従来結果を維持します。
+    if(!state.completed_survey){
+      markResearchIncomplete("result_guard_without_survey", missingResearchDays({includeCurrent:true}));
+      return renderResearchIncomplete();
+    }
+    if(state.research_completion_status !== "legacy_survey_complete" && !researchFiveDayCareComplete()){
+      const missing = [1,2,3,4,5].filter(day => !researchDayHasSubstantiveCare(day));
+      markResearchIncomplete("result_guard_incomplete_five_day_care", missing);
+      return renderResearchIncomplete();
+    }
     const type = judgeCareType();
     state.zukan = state.zukan || {collected:[], last_no:null, companion_no:null};
     state.zukan.companion_no = type.pet.no;
@@ -5609,13 +5868,31 @@
   }
 
   function enterFreeMode(){
-    const z = ensureZukan();
-    const companionNo = z.companion_no || judgeCareType().pet.no;
-    const collected = Array.isArray(z.collected) ? z.collected.slice() : [];
-    if(!collected.includes(companionNo)) collected.push(companionNo);
+    const completedResearch = !!state.completed_survey && (
+      state.research_completion_status === "survey_complete" ||
+      state.research_completion_status === "legacy_survey_complete"
+    );
+
+    // 完遂者だけは診断で得た1枚を図鑑の初期カードとして引き継ぎます。
+    // 途中離脱者は診断を行わず、図鑑0枚から自由プレイを開始します。
+    let companionNo = null;
+    let collected = [];
+    if(completedResearch){
+      const z = ensureZukan();
+      companionNo = z.companion_no || judgeCareType().pet.no;
+      collected = Array.isArray(z.collected) ? z.collected.slice() : [];
+      if(companionNo && !collected.includes(companionNo)) collected.push(companionNo);
+    }
+
+    // 研究モードのうちに、自由プレイへ移った事実だけを研究ログへ残します。
+    logEvent(completedResearch ? "free_play_enter_after_completion" : "free_play_enter_after_incomplete", {
+      research_completion_status:state.research_completion_status || "",
+      missing_days:state.research_missing_days || [],
+      reward_eligible:!!state.reward_eligible,
+      diagnosis_seed_card:completedResearch ? companionNo : null
+    });
 
     state.mode = "free";
-    state.completed_survey = true;
     state.condition_id = "";
     state.engagement_id = "";
     state.changed_applied = false;
@@ -5653,7 +5930,12 @@
     state.free_debug = [];
     state.screen = "gift";
     saveState();
-    logEvent("free_play_prepare_gift", {start_from:"gift", companion_no:companionNo, research_log:false});
+    logEvent("free_play_prepare_gift", {
+      start_from:"gift",
+      companion_no:companionNo,
+      research_log:false,
+      started_after_completed_research:completedResearch
+    });
     renderGift();
   }
 
@@ -5689,7 +5971,7 @@
         {q:"キャラクターが出てこない", a:"通信状況によって、表示に時間がかかることがあります。\n少し待ってから、もう一度画面を開いてください。"},
         {q:"前の続きにならない", a:"同じ端末・同じブラウザで開いてください。\n別の端末や別のブラウザで開くと、前の続きにならないことがあります。"},
         {q:"キャラクターの様子が変わった気がする", a:"ゲームの中では、日によってキャラクターの様子や反応が変わって見えることがあります。\n感じたことは、最後のアンケートでそのまま答えてください。"},
-        {q:"アンケートに進めない", a:"5日目の最後にアンケート画面へ進みます。\n表示されない場合は、ページを一度再読み込みしてください。"},
+        {q:"アンケートに進めない", a:"5日間すべての日に実際のお世話をした場合、5日目の最後にアンケート画面へ進みます。\n途中の日のお世話がない場合は、研究パートはそこで終了し、つづきのお世話だけ遊べます。"},
         {q:"SNSに投稿できない", a:"画像を保存してから、ご自身でSNSアプリを開いて投稿してください。\nSNSへ自動で投稿されることはありません。"}
       ],
       en:[
@@ -5697,7 +5979,7 @@
         {q:"The character does not appear", a:"Depending on the connection, it may take some time to appear.\nPlease wait a little, then open the screen again."},
         {q:"It does not continue from where I left off", a:"Please open it on the same device and in the same browser.\nIf you open it on a different device or browser, it may not continue from the previous state."},
         {q:"The character seems different", a:"In the game, the character’s appearance or responses may seem different depending on the day.\nPlease answer what you felt in the final survey."},
-        {q:"I cannot proceed to the survey", a:"You will proceed to the survey at the end of Day 5.\nIf it does not appear, please reload the page once."},
+        {q:"I cannot proceed to the survey", a:"The final survey appears only when actual care was completed on all five study days.\nIf a study day was missed, the research part ends and you can still use Continued Care."},
         {q:"I cannot post to SNS", a:"Please save the image first, then open your SNS app and post it yourself.\nIt will not be posted automatically to SNS."}
       ],
       "zh-CN":[
@@ -5705,7 +5987,7 @@
         {q:"角色没有出现", a:"根据通信状况，显示可能需要一些时间。\n请稍等一下，然后再次打开画面。"},
         {q:"不能从上次继续", a:"请使用同一设备和同一浏览器打开。\n如果用其他设备或其他浏览器打开，可能无法从上次的状态继续。"},
         {q:"感觉角色的样子变了", a:"在游戏中，角色的样子或反应可能会根据日期而看起来不同。\n请在最后的问卷中，按自己的感受回答。"},
-        {q:"无法进入问卷", a:"第5天的最后会进入问卷画面。\n如果没有显示，请重新加载页面一次。"},
+        {q:"无法进入问卷", a:"只有五个研究日都完成了实际照护时，才会在第5天最后进入问卷。\n如果漏掉了某一天，研究部分会结束，但仍可继续自由照护。"},
         {q:"无法发布到SNS", a:"请先保存图片，然后自己打开SNS应用进行发布。\n不会自动发布到SNS。"}
       ]
     };
@@ -5806,6 +6088,11 @@
     syncLifeClock();
     if(!state.research_id){ state.screen = "intro"; saveState(); return renderIntro(); }
     if(state.completed_survey && state.mode === "research"){ state.screen = "result"; saveState(); return renderResult(); }
+    if(state.mode === "research" && state.research_completion_status === "incomplete"){
+      state.screen = "incomplete";
+      saveState();
+      return renderResearchIncomplete();
+    }
     if(openSurveyAfterDay5()) return;
     if(state.mode === "free"){
       if(!state.gift_opened_at){ state.screen = "gift"; saveState(); return renderGift(); }
@@ -5821,7 +6108,9 @@
     if(!state.care_started_at){ state.care_started_at = state.hatch_at; }
     if(!state.life_day_marker){ state.life_day_marker = `research-${currentDay()}`; }
     ensureCareMeters();
+    ensureResearchDayCareTracking();
     if(!state.last_care_at){ state.last_care_at = state.care_started_at || state.hatch_at; }
+    if(routeToResearchIncompleteIfNeeded("restore_route_missing_day")) return;
     if(needsLetterReturnSequence(currentDay())){
       return ensureLetterReturnSequence(currentDay());
     }
