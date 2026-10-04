@@ -725,6 +725,61 @@
       line-height:1.65;
       text-align:center;
     }
+
+
+    /* ===========================================================
+       最終アンケート：スマホで長い設問が右側に切れないようにする
+       日本語・英語・中国語の長文をカード幅内で自然に折り返します。
+       =========================================================== */
+    .surveyCard{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      overflow-x:hidden;
+    }
+    .surveyCard label,
+    .surveyCard .checkline,
+    .surveyCard p,
+    .surveyCard h2,
+    .surveyCard h3{
+      max-width:100%;
+      min-width:0;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:normal;
+      line-break:auto;
+    }
+    .surveyCard input,
+    .surveyCard select,
+    .surveyCard textarea,
+    .surveyCard button{
+      max-width:100%;
+      min-width:0;
+    }
+    .surveyCard select{
+      white-space:normal;
+    }
+    .surveyCard .checkline{
+      align-items:flex-start;
+    }
+    .surveyCard .checkline input{
+      flex:0 0 auto;
+    }
+    @media (max-width:480px){
+      .app{
+        width:100%;
+        max-width:100%;
+        padding-left:10px;
+        padding-right:10px;
+      }
+      .surveyCard{
+        padding:16px 14px;
+      }
+      .surveyCard label{
+        line-height:1.65;
+      }
+    }
+
     .footer{display:none!important}
     .modalBack{position:fixed;inset:0;background:rgba(50,35,70,.42);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
     .modal{width:min(400px,100%);background:#fff;border-radius:24px;padding:20px;box-shadow:var(--shadow)}
@@ -4931,7 +4986,7 @@
 
     const st = surveyText();
     root.innerHTML = `
-      <section class="card">
+      <section class="card surveyCard">
         <h2>${esc(st.title)}</h2>
         <p class="small">${esc(st.lead)}</p>
 
