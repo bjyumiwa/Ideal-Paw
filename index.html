@@ -4724,35 +4724,202 @@
   }
 
 
-  const FINAL_SURVEY_QUESTIONS = [
-    {key:"same_existence", text:{ja:"変化後に現れたキャラクターは、3日目まで関わっていたキャラクターと同じ存在だと感じた。", en:"I felt that the character after the change was the same being I had cared for until Day 3.", "zh-CN":"我觉得变化后出现的角色，和第3天以前照护的角色是同一个存在。"}},
-    {key:"relationship_continuity", text:{ja:"このキャラクターとの関係は、5日間の続きだと感じた。", en:"I felt that my relationship with this character continued across the five days.", "zh-CN":"我觉得和这个角色的关系是五天连续下来的。"}},
-    {key:"my_partner", text:{ja:"変わったところがあっても、自分が育てた相棒だと感じた。", en:"Even if something had changed, I felt it was the companion I had cared for.", "zh-CN":"即使有变化，我也觉得它是自己照护过的小伙伴。"}},
-    {key:"attachment_importance", text:{ja:"お世話した相棒を、大事な存在だと感じた。", en:"I felt that the companion I cared for was important to me.", "zh-CN":"我觉得自己照护过的小伙伴是重要的存在。"}},
-    {key:"concern_when_absent", text:{ja:"お世話していない時間も、相棒のことが少し気になった。", en:"Even when I was not caring for it, I thought about the companion a little.", "zh-CN":"不照护的时候，我也会有点在意小伙伴。"}},
-    {key:"memory_clue", text:{ja:"これまでのお世話の記録や思い出が、同じ相棒だと感じる手がかりになった。", en:"Past care records or memories became clues for feeling it was the same companion.", "zh-CN":"以前的照护记录或回忆，成为我觉得它是同一个小伙伴的线索。"}},
-    {key:"reaction_clue", text:{ja:"行動や反応の変化は、同じ相棒かどうかを考える手がかりになった。", en:"Changes in actions or responses became clues for thinking about whether it was the same companion.", "zh-CN":"行动或反应的变化，成为我判断是否是同一个小伙伴的线索。"}},
-    {key:"change_makes_unsure", text:{ja:"変わったところが気になり、同じ相棒かどうか迷った。", en:"The changed parts made me unsure whether it was the same companion.", "zh-CN":"变化的地方让我在意，也让我犹豫它是否是同一个小伙伴。"}}
-  ];
-
-  const FINAL_SURVEY_SCALE = {
-    ja:["1 まったくそう思わない","2 あまりそう思わない","3 少しそう思わない","4 どちらともいえない","5 少しそう思う","6 かなりそう思う","7 とてもそう思う"],
-    en:["1 Strongly disagree","2 Disagree","3 Slightly disagree","4 Neither agree nor disagree","5 Slightly agree","6 Agree","7 Strongly agree"],
-    "zh-CN":["1 完全不同意","2 不太同意","3 有点不同意","4 说不清","5 有点同意","6 比较同意","7 非常同意"]
+  const FINAL_SURVEY_I18N = {
+    ja:{
+      title:"最後のアンケート",
+      lead:"5日間のお世話全体を振り返り、感じたことに近いものをそのまま答えてください。正解はありません。氏名・学校名・勤務先・連絡先など、個人が分かる情報は書かないでください。",
+      select:"選択してください",
+      required:"必須",
+      optional:"任意",
+      sectionA:"A．属性",
+      sectionB:"B．同一性判断",
+      sectionC:"C．同一性判断の理由",
+      sectionD:"D．変化への気づき",
+      sectionE:"E．同一性判断の手がかり",
+      sectionF:"F．愛着・関与",
+      sectionFLead:"5日間のお世話全体を振り返ってお答えください。",
+      age:"年齢：あなたの年齢を数字で入力してください。",
+      agePh:"例：25",
+      gender:"性別：あなたの性別を教えてください。",
+      genderOptions:{female:"女性",male:"男性",other:"その他",no_answer:"答えたくない"},
+      q1:"Q1. 4日目・5日目のキャラクターは、1〜3日目にお世話していたキャラクターと同じ存在だと思いますか。",
+      q1sub:"Q1-補. 4日目以降、別のキャラクターに入れ替わったと感じましたか。",
+      q2:"Q2. Q1のように判断した理由を教えてください。",
+      q2Ph:"理由を自由に書いてください。個人が分かる情報は書かないでください。",
+      q3:"Q3. 1〜3日目のキャラクターと比べて、4日目・5日目のキャラクターに何か違いや変化を感じましたか。",
+      q3Options:{clearly:"はっきり感じた",slightly:"少し感じた",neutral:"どちらともいえない",hardly:"あまり感じなかった",not_at_all:"まったく感じなかった"},
+      q4:"Q4. 何が変わったと感じましたか。（複数選択可）",
+      q4Options:{name:"名前",appearance:"見た目",personality:"反応や性格",memory:"これまでのことを覚えているかどうか",dont_know:"わからない",other:"その他"},
+      q4OtherPh:"その他の内容を入力してください。",
+      q5:"Q5. どのような違いや変化だったか、よければ教えてください。",
+      q5Ph:"任意で入力してください。個人が分かる情報は書かないでください。",
+      q6:"Q6. Q1の判断をするとき、何が手がかりになりましたか。（複数選択可）",
+      q6Options:{name:"名前",appearance:"見た目",personality:"反応や性格",memory:"キャラクターが、これまでのことを覚えているかどうか",care_experience:"自分がこれまでお世話してきた経験",intuitive:"なんとなく同じ／違うと感じた",none:"特に手がかりはなかった",other:"その他"},
+      q6OtherPh:"その他の手がかりを入力してください。",
+      q7:"Q7. Q6で選んだもののうち、最も重要だったものを1つ選んでください。",
+      q7Empty:"先にQ6で1つ以上選んでください。",
+      q8:"Q8. キャラクターに愛着を感じましたか。",
+      q9:"Q9. キャラクターを大事に感じましたか。",
+      q10:"Q10. お世話していない時間も、キャラクターのことが気になりましたか。",
+      scale:["1 まったくそう思わない","2 そう思わない","3 あまりそう思わない","4 どちらともいえない","5 ややそう思う","6 そう思う","7 とてもそう思う"],
+      submit:"回答を送信する",
+      missing:"未回答の必須項目があります。回答してから送信してください。",
+      ageError:"年齢は18〜120の数字で入力してください。",
+      q4Error:"Q4を1つ以上選んでください。",
+      q6Error:"Q6を1つ以上選んでください。",
+      q7Error:"Q7を選んでください。"
+    },
+    en:{
+      title:"Final survey",
+      lead:"Please look back on the five days of care and answer according to what you actually felt. There are no right or wrong answers. Do not enter identifying information such as your name, school, workplace, or contact details.",
+      select:"Please choose",
+      required:"Required",
+      optional:"Optional",
+      sectionA:"A. About you",
+      sectionB:"B. Identity judgment",
+      sectionC:"C. Reason for the identity judgment",
+      sectionD:"D. Awareness of change",
+      sectionE:"E. Cues used for the identity judgment",
+      sectionF:"F. Attachment and engagement",
+      sectionFLead:"Please answer while looking back on the full five days of care.",
+      age:"Age: Please enter your age as a number.",
+      agePh:"e.g., 25",
+      gender:"Gender: Please tell us your gender.",
+      genderOptions:{female:"Female",male:"Male",other:"Other",no_answer:"Prefer not to answer"},
+      q1:"Q1. Do you think the character on Days 4 and 5 was the same being as the character you cared for on Days 1–3?",
+      q1sub:"Q1-Supplement. From Day 4 onward, did you feel that the character had been replaced by a different character?",
+      q2:"Q2. Please tell us why you made the judgment you gave in Q1.",
+      q2Ph:"Please write your reason. Do not include identifying information.",
+      q3:"Q3. Compared with the character on Days 1–3, did you notice any difference or change in the character on Days 4 and 5?",
+      q3Options:{clearly:"I clearly noticed a change",slightly:"I noticed a slight change",neutral:"Neither / not sure",hardly:"I hardly noticed a change",not_at_all:"I did not notice any change at all"},
+      q4:"Q4. What did you feel had changed? (Select all that apply.)",
+      q4Options:{name:"Name",appearance:"Appearance",personality:"Responses or personality",memory:"Whether the character remembered what had happened before",dont_know:"I don't know",other:"Other"},
+      q4OtherPh:"Please describe the other change.",
+      q5:"Q5. If you would like, please describe what kind of difference or change you noticed.",
+      q5Ph:"Optional. Do not include identifying information.",
+      q6:"Q6. When making your judgment in Q1, what did you use as cues? (Select all that apply.)",
+      q6Options:{name:"Name",appearance:"Appearance",personality:"Responses or personality",memory:"Whether the character remembered what had happened before",care_experience:"My experience of caring for the character up to that point",intuitive:"I simply felt that it was the same / different",none:"I did not use any particular cue",other:"Other"},
+      q6OtherPh:"Please describe the other cue.",
+      q7:"Q7. Of the items you selected in Q6, choose the single most important one.",
+      q7Empty:"First select at least one item in Q6.",
+      q8:"Q8. Did you feel attached to the character?",
+      q9:"Q9. Did you feel that the character was important to you?",
+      q10:"Q10. Did you think about the character even when you were not caring for it?",
+      scale:["1 Strongly disagree","2 Disagree","3 Somewhat disagree","4 Neither agree nor disagree","5 Somewhat agree","6 Agree","7 Strongly agree"],
+      submit:"Submit answers",
+      missing:"Some required items are unanswered. Please complete them before submitting.",
+      ageError:"Please enter an age from 18 to 120.",
+      q4Error:"Please select at least one answer for Q4.",
+      q6Error:"Please select at least one answer for Q6.",
+      q7Error:"Please select an answer for Q7."
+    },
+    "zh-CN":{
+      title:"最后问卷",
+      lead:"请回顾五天的照护过程，并按照你实际的感受回答。没有正确或错误的答案。请不要填写姓名、学校名、工作单位、联系方式等可识别个人的信息。",
+      select:"请选择",
+      required:"必答",
+      optional:"选答",
+      sectionA:"A．基本信息",
+      sectionB:"B．同一性判断",
+      sectionC:"C．同一性判断的理由",
+      sectionD:"D．对变化的察觉",
+      sectionE:"E．同一性判断的线索",
+      sectionF:"F．依恋与投入",
+      sectionFLead:"请回顾五天的全部照护经历后回答。",
+      age:"年龄：请用数字填写你的年龄。",
+      agePh:"例如：25",
+      gender:"性别：请选择你的性别。",
+      genderOptions:{female:"女性",male:"男性",other:"其他",no_answer:"不想回答"},
+      q1:"Q1. 你认为第4天和第5天的角色，与第1～3天你照护的角色是同一个存在吗？",
+      q1sub:"Q1-补充（选答）. 从第4天开始，你是否觉得角色被换成了另一个角色？",
+      q2:"Q2. 请说明你为什么会像Q1那样判断。",
+      q2Ph:"请自由填写理由。不要填写可识别个人的信息。",
+      q3:"Q3. 与第1～3天的角色相比，你是否感觉第4天和第5天的角色有任何不同或变化？",
+      q3Options:{clearly:"明显感觉到了",slightly:"稍微感觉到了",neutral:"说不清",hardly:"不太感觉得到",not_at_all:"完全没有感觉到"},
+      q4:"Q4. 你觉得哪些方面发生了变化？（可多选）",
+      q4Options:{name:"名字",appearance:"外观",personality:"反应或性格",memory:"是否记得以前发生过的事情",dont_know:"不知道",other:"其他"},
+      q4OtherPh:"请填写其他变化。",
+      q5:"Q5. 如果愿意，请描述你感觉到的是怎样的不同或变化。",
+      q5Ph:"选答。不要填写可识别个人的信息。",
+      q6:"Q6. 在做出Q1的判断时，你参考了哪些线索？（可多选）",
+      q6Options:{name:"名字",appearance:"外观",personality:"反应或性格",memory:"角色是否记得以前发生过的事情",care_experience:"自己一直以来照护这个角色的经历",intuitive:"只是直觉上觉得相同／不同",none:"没有特别的线索",other:"其他"},
+      q6OtherPh:"请填写其他线索。",
+      q7:"Q7. 请从你在Q6中选择的项目里，选出最重要的一项。",
+      q7Empty:"请先在Q6中至少选择一项。",
+      q8:"Q8. 你对这个角色产生了依恋吗？",
+      q9:"Q9. 你觉得这个角色对你来说很重要吗？",
+      q10:"Q10. 在没有照护角色的时候，你也会想起或在意它吗？",
+      scale:["1 完全不同意","2 不同意","3 不太同意","4 说不清","5 稍微同意","6 同意","7 非常同意"],
+      submit:"提交回答",
+      missing:"还有必答项目未完成。请回答后再提交。",
+      ageError:"请输入18～120之间的年龄数字。",
+      q4Error:"请至少选择一项Q4。",
+      q6Error:"请至少选择一项Q6。",
+      q7Error:"请选择Q7。"
+    }
   };
 
-  function finalSurveyLabel(obj){
-    return (obj && (obj[L()] || obj.ja)) || "";
+  function surveyText(){
+    return FINAL_SURVEY_I18N[L()] || FINAL_SURVEY_I18N.ja;
   }
 
-  function renderFinalSurveySelect(q){
-    const labels = FINAL_SURVEY_SCALE[L()] || FINAL_SURVEY_SCALE.ja;
+  function renderLikertSelect(id, label, optional=false){
+    const st = surveyText();
     return `
-      <label for="${esc(q.key)}">${esc(finalSurveyLabel(q.text))}</label>
-      <select id="${esc(q.key)}" data-survey-question="${esc(q.key)}" required>
-        <option value="">${esc(t("select"))}</option>
-        ${labels.map((label,i)=>`<option value="${i+1}">${esc(label)}</option>`).join("")}
+      <label for="${esc(id)}">${esc(label)} ${optional ? `<span class="small">（${esc(st.optional)}）</span>` : ""}</label>
+      <select id="${esc(id)}" ${optional ? "" : "required"}>
+        <option value="">${esc(st.select)}</option>
+        ${st.scale.map((x,i)=>`<option value="${i+1}">${esc(x)}</option>`).join("")}
       </select>`;
+  }
+
+  function renderCheckboxGroup(name, options){
+    return Object.entries(options).map(([value,label]) =>
+      `<label class="checkline"><input type="checkbox" name="${esc(name)}" value="${esc(value)}">${esc(label)}</label>`
+    ).join("");
+  }
+
+  function checkedValues(name){
+    return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(x=>x.value);
+  }
+
+  function bindExclusiveCheckbox(name, exclusiveValue){
+    document.querySelectorAll(`input[name="${name}"]`).forEach(box => {
+      box.addEventListener("change", () => {
+        const all = Array.from(document.querySelectorAll(`input[name="${name}"]`));
+        if(box.value === exclusiveValue && box.checked){
+          all.forEach(x => { if(x !== box) x.checked = false; });
+        }else if(box.checked){
+          const exclusive = all.find(x => x.value === exclusiveValue);
+          if(exclusive) exclusive.checked = false;
+        }
+        if(name === "q6_clues") updateQ7Options();
+      });
+    });
+  }
+
+  function updateOtherField(groupName, otherId){
+    const box = document.querySelector(`input[name="${groupName}"][value="other"]`);
+    const input = $(otherId);
+    if(!box || !input) return;
+    const sync = () => {
+      input.classList.toggle("hidden", !box.checked);
+      if(!box.checked) input.value = "";
+    };
+    box.addEventListener("change", sync);
+    sync();
+  }
+
+  function updateQ7Options(){
+    const st = surveyText();
+    const q7 = $("q7MostImportant");
+    if(!q7) return;
+    const selected = checkedValues("q6_clues");
+    const prev = q7.value;
+    q7.innerHTML = `<option value="">${esc(selected.length ? st.select : st.q7Empty)}</option>` +
+      selected.map(value => `<option value="${esc(value)}">${esc(st.q6Options[value] || value)}</option>`).join("");
+    if(selected.includes(prev)) q7.value = prev;
+    q7.disabled = selected.length === 0;
   }
 
   function renderSurvey(){
@@ -4761,109 +4928,105 @@
       markResearchIncomplete("survey_guard_incomplete_five_day_care", missing);
       return renderResearchIncomplete();
     }
-    const lang = L();
-    const noticeOptions = lang === "en"
-      ? {noticed:"I felt that something had changed", not_noticed:"I did not particularly feel a change", unsure:"I am not sure"}
-      : lang === "zh-CN"
-        ? {noticed:"感觉有地方变了", not_noticed:"没有特别感觉到变化", unsure:"不确定"}
-        : {noticed:"変わったと感じた", not_noticed:"特に変わったとは感じなかった", unsure:"わからない"};
-    const demoText = lang === "en"
-      ? {age:"Age group", gender:"Gender", intro:"First, please tell us about yourself. Do not enter information that identifies you.", reason:"When thinking about whether it was the same companion, which parts caught your attention?", free:"Please write anything you remember or felt about the character you cared for.", freePh:"Please write freely. Do not include identifying information.", notice:"After Day 4, did you feel that something about the companion had changed?"}
-      : lang === "zh-CN"
-        ? {age:"年龄区分", gender:"性别", intro:"首先，请告诉我们关于你的信息。请不要填写可识别个人的信息。", reason:"在思考是否是同一个小伙伴时，你在意了哪些地方？", free:"关于五天里照护过的角色，如果有想到的事情，请写下来。", freePh:"请自由填写。不要写可识别个人的信息。", notice:"第4天以后，你觉得小伙伴有什么地方变了吗？"}
-        : {age:"年齢区分", gender:"性別", intro:"はじめに、あなたについて教えてください。個人が特定される情報は書かないでください。", reason:"同じ相棒かどうかを考えるとき、気になったところを選んでください。", free:"5日間育てたキャラクターについて思い浮かんだことがあれば書いてください。", freePh:"思い浮かんだことを自由に書いてください。個人が分かる情報は書かないでください。", notice:"4日目以降、相棒のどこかが変わったと感じましたか。"};
 
-    const partLabels = lang === "en"
-      ? {name:"Name", appearance:"Appearance", behavior:"Actions or responses", care_log:"Care records", relationship:"My relationship with it", feeling:"Intuitive impression", my_action:"My own care actions", not_sure:"Not sure"}
-      : lang === "zh-CN"
-        ? {name:"名字", appearance:"外观", behavior:"行动或反应", care_log:"照护记录", relationship:"自己和它的关系", feeling:"直觉印象", my_action:"自己做过的照护", not_sure:"不确定"}
-        : {name:"名前", appearance:"見た目", behavior:"行動や反応", care_log:"お世話の記録", relationship:"自分との関係", feeling:"なんとなくの印象", my_action:"自分がしたお世話の内容", not_sure:"よくわからない"};
-
+    const st = surveyText();
     root.innerHTML = `
       <section class="card">
-        <h2>${esc(t("surveyTitle"))}</h2>
-        <p class="small">${esc(t("surveyLead"))}</p>
+        <h2>${esc(st.title)}</h2>
+        <p class="small">${esc(st.lead)}</p>
 
-        <div class="notice small">${esc(demoText.intro)}</div>
-        <label for="ageGroup">${esc(demoText.age)}</label>
-        <select id="ageGroup" required>
-          <option value="">${esc(t("select"))}</option>
-          <option value="18-19">18〜19歳</option>
-          <option value="20-29">20〜29歳</option>
-          <option value="30-39">30〜39歳</option>
-          <option value="40-49">40〜49歳</option>
-          <option value="50-59">50〜59歳</option>
-          <option value="60+">60歳以上</option>
-          <option value="no_answer">${esc(lang === "en" ? "Prefer not to answer" : lang === "zh-CN" ? "不想回答" : "答えたくない")}</option>
+        <h3>${esc(st.sectionA)}</h3>
+        <label for="surveyAge">${esc(st.age)}</label>
+        <input id="surveyAge" type="number" inputmode="numeric" min="18" max="120" step="1" placeholder="${esc(st.agePh)}" required>
+
+        <label for="surveyGender">${esc(st.gender)}</label>
+        <select id="surveyGender" required>
+          <option value="">${esc(st.select)}</option>
+          ${Object.entries(st.genderOptions).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}
         </select>
 
-        <label for="gender">${esc(demoText.gender)}</label>
-        <select id="gender" required>
-          <option value="">${esc(t("select"))}</option>
-          <option value="female">${esc(lang === "en" ? "Female" : lang === "zh-CN" ? "女性" : "女性")}</option>
-          <option value="male">${esc(lang === "en" ? "Male" : lang === "zh-CN" ? "男性" : "男性")}</option>
-          <option value="other">${esc(lang === "en" ? "Other" : lang === "zh-CN" ? "其他" : "その他")}</option>
-          <option value="no_answer">${esc(lang === "en" ? "Prefer not to answer" : lang === "zh-CN" ? "不想回答" : "答えたくない")}</option>
+        <h3 style="margin-top:22px">${esc(st.sectionB)}</h3>
+        ${renderLikertSelect("q1Identity", st.q1)}
+        ${renderLikertSelect("q1Replaced", st.q1sub, true)}
+
+        <h3 style="margin-top:22px">${esc(st.sectionC)}</h3>
+        <label for="q2Reason">${esc(st.q2)}</label>
+        <textarea id="q2Reason" maxlength="1200" placeholder="${esc(st.q2Ph)}" required></textarea>
+
+        <h3 style="margin-top:22px">${esc(st.sectionD)}</h3>
+        <label for="q3ChangeAwareness">${esc(st.q3)}</label>
+        <select id="q3ChangeAwareness" required>
+          <option value="">${esc(st.select)}</option>
+          ${Object.entries(st.q3Options).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}
         </select>
 
-        ${FINAL_SURVEY_QUESTIONS.map(renderFinalSurveySelect).join("")}
+        <label>${esc(st.q4)}</label>
+        ${renderCheckboxGroup("q4_changes", st.q4Options)}
+        <input id="q4Other" class="hidden" type="text" maxlength="300" placeholder="${esc(st.q4OtherPh)}">
 
-        <label for="qNoticeChange">${esc(demoText.notice)}</label>
-        <select id="qNoticeChange" required>
-          <option value="">${esc(t("select"))}</option>
-          <option value="noticed">${esc(noticeOptions.noticed)}</option>
-          <option value="not_noticed">${esc(noticeOptions.not_noticed)}</option>
-          <option value="unsure">${esc(noticeOptions.unsure)}</option>
+        <label for="q5ChangeDescription">${esc(st.q5)} <span class="small">（${esc(st.optional)}）</span></label>
+        <textarea id="q5ChangeDescription" maxlength="1200" placeholder="${esc(st.q5Ph)}"></textarea>
+
+        <h3 style="margin-top:22px">${esc(st.sectionE)}</h3>
+        <label>${esc(st.q6)}</label>
+        ${renderCheckboxGroup("q6_clues", st.q6Options)}
+        <input id="q6Other" class="hidden" type="text" maxlength="300" placeholder="${esc(st.q6OtherPh)}">
+
+        <label for="q7MostImportant">${esc(st.q7)}</label>
+        <select id="q7MostImportant" required disabled>
+          <option value="">${esc(st.q7Empty)}</option>
         </select>
 
-        <label>${esc(demoText.reason)}</label>
-        <label class="checkline"><input type="checkbox" name="noticed_parts" value="name">${esc(partLabels.name)}</label>
-        <label class="checkline"><input type="checkbox" name="noticed_parts" value="appearance">${esc(partLabels.appearance)}</label>
-        <label class="checkline"><input type="checkbox" name="noticed_parts" value="behavior">${esc(partLabels.behavior)}</label>
-        <label class="checkline"><input type="checkbox" name="noticed_parts" value="care_log">${esc(partLabels.care_log)}</label>
-        <label class="checkline"><input type="checkbox" name="noticed_parts" value="relationship">${esc(partLabels.relationship)}</label>
-        <label class="checkline"><input type="checkbox" name="noticed_parts" value="feeling">${esc(partLabels.feeling)}</label>
-        <label class="checkline"><input type="checkbox" name="noticed_parts" value="my_action">${esc(partLabels.my_action)}</label>
-        <label class="checkline"><input type="checkbox" name="noticed_parts" value="not_sure">${esc(partLabels.not_sure)}</label>
+        <h3 style="margin-top:22px">${esc(st.sectionF)}</h3>
+        <p class="small">${esc(st.sectionFLead)}</p>
+        ${renderLikertSelect("q8Attachment", st.q8)}
+        ${renderLikertSelect("q9Importance", st.q9)}
+        ${renderLikertSelect("q10Concern", st.q10)}
 
-        <label for="qFree">${esc(demoText.free)}</label>
-        <textarea id="qFree" maxlength="800" placeholder="${esc(demoText.freePh)}"></textarea>
-        <button id="submitSurveyBtn" class="wide" type="button">${esc(t("submit"))}</button>
+        <button id="submitSurveyBtn" class="wide" type="button" style="margin-top:18px">${esc(st.submit)}</button>
       </section>`;
+
+    bindExclusiveCheckbox("q4_changes", "dont_know");
+    bindExclusiveCheckbox("q6_clues", "none");
+    updateOtherField("q4_changes", "q4Other");
+    updateOtherField("q6_clues", "q6Other");
+    document.querySelectorAll('input[name="q6_clues"]').forEach(x => x.addEventListener("change", updateQ7Options));
+    updateQ7Options();
     $("submitSurveyBtn").addEventListener("click", submitSurvey);
   }
 
-  function getFinalSurveyAnswers(){
-    const answers = {};
-    FINAL_SURVEY_QUESTIONS.forEach(q => {
-      const el = $(q.key);
-      answers[q.key] = el && el.value ? Number(el.value) : null;
-    });
-    return answers;
+  function deriveSurveyReasons(q6Clues){
+    const reasons = [];
+    if(q6Clues.includes("name")) reasons.push("name");
+    if(q6Clues.includes("appearance")) reasons.push("look");
+    if(q6Clues.includes("personality")) reasons.push("personality");
+    if(q6Clues.includes("memory") || q6Clues.includes("care_experience")) reasons.push("memory");
+    if(q6Clues.includes("intuitive")) reasons.push("feeling");
+    return reasons;
+  }
+
+  function calculateFinalIdentityPercent(q1Identity, q1Replaced){
+    const main = Number(q1Identity || 4);
+    if(q1Replaced){
+      const reverse = 8 - Number(q1Replaced);
+      return clamp(Math.round((((main + reverse) / 2) - 1) / 6 * 100), 0, 100);
+    }
+    return clamp(Math.round((main - 1) / 6 * 100), 0, 100);
   }
 
   function validateSurvey(){
-    if(!$("ageGroup")?.value || !$("gender")?.value || !$("qNoticeChange")?.value) return false;
-    return FINAL_SURVEY_QUESTIONS.every(q => $(q.key)?.value);
-  }
-
-  function calculateFinalIdentityPercent(answers){
-    // 7件法用：逆転項目は 8 - 回答値、満点は 7 + 7 = 14
-    const positive = ["same_existence","relationship_continuity","my_partner","memory_clue"]
-      .reduce((sum,key)=>sum + Number(answers[key] || 0),0) / 4;
-    const reverseUnsure = answers.change_makes_unsure ? 8 - Number(answers.change_makes_unsure) : 4;
-    return clamp(Math.round(((positive + reverseUnsure) / 14) * 100), 0, 100);
-  }
-
-  function deriveSurveyReasons(noticedParts){
-    const reasons = [];
-    if(noticedParts.includes("name")) reasons.push("name");
-    if(noticedParts.includes("appearance")) reasons.push("look");
-    if(noticedParts.includes("behavior")) reasons.push("personality");
-    if(noticedParts.includes("care_log") || noticedParts.includes("relationship")) reasons.push("memory");
-    if(noticedParts.includes("feeling")) reasons.push("feeling");
-    if(noticedParts.includes("my_action")) reasons.push("action");
-    return reasons;
+    const st = surveyText();
+    const age = Number($("surveyAge")?.value || 0);
+    if(!Number.isInteger(age) || age < 18 || age > 120){ alert(st.ageError); return false; }
+    if(!$("surveyGender")?.value || !$("q1Identity")?.value || !$("q2Reason")?.value.trim() || !$("q3ChangeAwareness")?.value || !$("q8Attachment")?.value || !$("q9Importance")?.value || !$("q10Concern")?.value){
+      alert(st.missing); return false;
+    }
+    const q4 = checkedValues("q4_changes");
+    if(!q4.length){ alert(st.q4Error); return false; }
+    const q6 = checkedValues("q6_clues");
+    if(!q6.length){ alert(st.q6Error); return false; }
+    if(!$("q7MostImportant")?.value){ alert(st.q7Error); return false; }
+    return true;
   }
 
   function submitSurvey(){
@@ -4872,29 +5035,47 @@
       markResearchIncomplete("survey_submit_guard_incomplete_five_day_care", missing);
       return renderResearchIncomplete();
     }
-    if(!validateSurvey()){ alert(t("missing")); return; }
-    const answers = getFinalSurveyAnswers();
-    const noticedParts = Array.from(document.querySelectorAll('input[name="noticed_parts"]:checked')).map(x=>x.value);
-    const reasons = deriveSurveyReasons(noticedParts);
+    if(!validateSurvey()) return;
+
+    const q4Changes = checkedValues("q4_changes");
+    const q6Clues = checkedValues("q6_clues");
+    const q1Identity = Number($("q1Identity").value);
+    const q1Replaced = $("q1Replaced").value ? Number($("q1Replaced").value) : null;
+    const q8Attachment = Number($("q8Attachment").value);
+    const q9Importance = Number($("q9Importance").value);
+    const q10Concern = Number($("q10Concern").value);
+    const reasons = deriveSurveyReasons(q6Clues);
+
     state.survey = {
-      age_group: $("ageGroup").value,
-      gender: $("gender").value,
-      answers,
-      identity_score: Number(answers.same_existence || 0),
-      attachment_score: Number(answers.attachment_importance || 0),
-      concern_score: Number(answers.concern_when_absent || 0),
-      relationship_continuity_score: Number(answers.relationship_continuity || 0),
-      my_partner_score: Number(answers.my_partner || 0),
-      memory_clue_score: Number(answers.memory_clue || 0),
-      reaction_clue_score: Number(answers.reaction_clue || 0),
-      change_makes_unsure_score: Number(answers.change_makes_unsure || 0),
-      identity_continuity_percent: calculateFinalIdentityPercent(answers),
-      noticed_change: $("qNoticeChange").value,
-      noticed_parts: noticedParts,
+      survey_version:"2026-10-04_revised_final",
+      age:Number($("surveyAge").value),
+      gender:$("surveyGender").value,
+      q1_identity:q1Identity,
+      q1_replaced_optional:q1Replaced,
+      q2_reason:$("q2Reason").value.trim(),
+      q3_change_awareness:$("q3ChangeAwareness").value,
+      q4_changed_aspects:q4Changes,
+      q4_other:q4Changes.includes("other") ? $("q4Other").value.trim() : "",
+      q5_change_description_optional:$("q5ChangeDescription").value.trim(),
+      q6_identity_clues:q6Clues,
+      q6_other:q6Clues.includes("other") ? $("q6Other").value.trim() : "",
+      q7_most_important_clue:$("q7MostImportant").value,
+      q8_attachment:q8Attachment,
+      q9_importance:q9Importance,
+      q10_concern:q10Concern,
+      likert_scale:7,
+
+      // 既存の相棒カード判定との互換性を保つための別名フィールド
+      identity_score:q1Identity,
+      attachment_score:q8Attachment,
+      concern_score:q10Concern,
+      noticed_change:$("q3ChangeAwareness").value,
+      noticed_parts:q4Changes,
       reasons,
-      free_text: $("qFree").value.trim(),
-      likert_scale: 7
+      free_text:$("q2Reason").value.trim(),
+      identity_continuity_percent:calculateFinalIdentityPercent(q1Identity, q1Replaced)
     };
+
     state.completed_survey = true;
     state.research_completion_status = "survey_complete";
     state.research_completed_at = state.research_completed_at || new Date().toISOString();
@@ -4907,9 +5088,9 @@
       research_day_care:{...ensureResearchDayCareTracking()},
       five_day_care_complete:true,
       reward_eligible:true,
-      care_meters_total: {...state.care_meters_total},
-      full_meter_count: state.full_meter_count,
-      source: "embedded_final_survey_in_full_index_7likert"
+      care_meters_total:{...state.care_meters_total},
+      full_meter_count:state.full_meter_count,
+      source:"embedded_final_survey_2026-10-04_revised"
     });
     renderResult();
   }
