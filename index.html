@@ -677,6 +677,18 @@
        最後の結果カード内だけに表示します。
        SNS共有カード・共有画像・共有文には、この要素を入れません。
        =========================================================== */
+    .debriefBox{
+      margin:0 0 16px;
+      padding:16px;
+      border-radius:22px;
+      background:rgba(235,247,255,.95);
+      border-left:6px solid var(--blue);
+      color:#3c4a63;
+      text-align:left;
+      line-height:1.8;
+    }
+    .debriefBox h3{margin:0 0 8px;color:#2f4d73;text-shadow:none;font-size:17px}
+    .debriefBox p{margin:8px 0;color:#3c4a63;font-size:14px}
     .careWatchSummary{
       margin:14px 0;
       padding:14px;
@@ -1233,7 +1245,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261011-v35.5-log-delivery-retry",
+    APP_VERSION: "osewa-20261012-v35.6-debrief",
     BACKUP_SCHEMA_VERSION: 1,
     BACKUP_DEBOUNCE_MS: 1800,
     // 研究ログはCloudflare Worker経由で保存します。
@@ -1276,7 +1288,7 @@
       consentTitle:"研究について", consentP1:"この研究では、ブラウザで遊べるお世話ゲームを通して、デジタルキャラクターとの関わり方を調べます。",
       consentP2:"ゲームでは、キャラクターにごはんをあげたり、なでたり、おでかけをしたりしながら、数日間かかわっていきます。その途中で、キャラクターの様子や反応に変化が感じられる場面があります。",
       consentP3:"その変化に対して、参加者がどのように感じるのかを調べることが、この研究の目的です。そのため、ゲームの展開をすべて事前に詳しく説明するのではなく、実際に遊びながら感じたことを大切にします。",
-      consentNotice:"ゲーム中の行動や最後のアンケート回答は、個人が特定されない形で研究に使用します。つらいと感じた場合や続けたくない場合は、いつでも途中でやめることができます。途中でやめても不利益はありません。",
+      consentNotice:"ゲーム中の行動や最後のアンケート回答は、個人が特定されない形で記録し、本研究の目的以外には使用しません。つらいと感じた場合や続けたくない場合は、いつでも途中でやめることができ、途中でやめても不利益はありません。途中でやめた場合、それまでの記録は分析に使用しません。なお、回答は無記名のため、送信後に個別のデータを特定して削除することはできません。研究についての質問は、画面右上の「？」にある問い合わせフォームから送ることができます。",
       check1:"私は18歳以上であり、研究内容を確認したうえで、自分の意思で参加します。", check2:"自由記述欄などに、氏名・学校名・勤務先・連絡先などを書かないことを確認しました。",
       back:"戻る", agree:"同意して進む", needCheck:"確認項目にチェックしてください。",
       waitingTitle:"プレゼントを準備しています", waitingText:"準備ができると、プレゼントが届きます。", checkGift:"確認する",
@@ -1313,7 +1325,7 @@
       consentTitle:"About this study", consentP1:"This study uses a browser-based care game to examine how people interact with a digital character.",
       consentP2:"In the game, you will care for the character for several days by feeding it, petting it, and going out together. During the game, you may notice changes in the character’s appearance or responses.",
       consentP3:"The purpose of this study is to examine how participants feel about those changes. For this reason, not every part of the game will be explained in detail in advance. Please answer based on what you actually felt while playing.",
-      consentNotice:"Game actions and final survey responses will be used for research in a non-identifiable form. You may stop at any time if you feel uncomfortable or do not wish to continue. There is no disadvantage if you stop.",
+      consentNotice:"Game actions and final survey responses are recorded in a non-identifiable form and will not be used for any purpose other than this study. You may stop at any time if you feel uncomfortable or do not wish to continue, and there is no disadvantage if you stop. If you stop partway, your records up to that point will not be used in the analysis. Because responses are anonymous, individual data cannot be identified and deleted after submission. Questions about the study can be sent through the inquiry form under the “?” button at the top right.",
       check1:"I am 18 years or older, have read the study information, and choose to participate voluntarily.", check2:"I confirm that I will not write identifying information such as my name, school, workplace, or contact details.",
       back:"Back", agree:"Agree and continue", needCheck:"Please check the confirmation items.",
       waitingTitle:"Preparing your present", waitingText:"A present will arrive when preparation is complete.", checkGift:"Check",
@@ -1350,7 +1362,7 @@
       consentTitle:"关于本研究", consentP1:"本研究通过浏览器中的照护游戏，了解人们如何与数字角色互动。",
       consentP2:"在游戏中，你会在几天里给角色喂食、抚摸它，或和它一起外出。过程中，你可能会感觉到角色的样子或反应发生变化。",
       consentP3:"本研究的目的是了解参与者如何感受这些变化。因此，游戏的所有发展不会在事前全部详细说明。请一边游玩，一边根据实际感受回答。",
-      consentNotice:"游戏中的行为和最后问卷回答会以无法识别个人的形式用于研究。如果感到难受或不想继续，可以随时中止。中止也不会受到不利影响。",
+      consentNotice:"游戏中的行为和最后问卷回答会以无法识别个人的形式记录，不会用于本研究以外的目的。如果感到难受或不想继续，可以随时中止，中止也不会受到不利影响。中途中止时，此前的记录不会用于分析。由于回答是匿名的，提交后无法识别并删除个人数据。关于研究的问题，可以通过画面右上角“？”中的咨询表单发送。",
       check1:"我已满18岁，已阅读研究内容，并自愿参加。", check2:"我确认不会在自由填写栏中写姓名、学校名、工作单位、联系方式等可识别个人的信息。",
       back:"返回", agree:"同意并继续", needCheck:"请勾选确认项目。",
       waitingTitle:"正在准备礼物", waitingText:"准备完成后，礼物会送到。", checkGift:"确认",
@@ -2538,6 +2550,7 @@
       notification_enabled_at:"",
       notification_test_sent_at:"",
       survey:null,
+      debrief_shown_at:"",
       screen:"intro"
     };
   }
@@ -2633,7 +2646,7 @@
       "return_started_at","return_completed","return_completed_at","name_cue_days",
       "mode","research_day_care","research_completion_status","research_completed_at",
       "research_incomplete_at","research_incomplete_reason","research_missing_days","reward_eligible",
-      "completed_survey","survey_auto_opened_at","logs","free_logs","zukan",
+      "completed_survey","survey_auto_opened_at","debrief_shown_at","logs","free_logs","zukan",
       "tips_shown","tips_logged","screen"
     ];
     const snapshot = {};
@@ -6377,6 +6390,57 @@
     return dict[key]?.[lang] || dict[key]?.ja || key;
   }
 
+  // ===========================================================
+  // v35.6 事後説明（デブリーフィング）
+  // 倫理審査申請書のとおり、質問紙提出後に「4日目以降の変化は研究上の操作であった」
+  // ことを画面上で伝えます。途中離脱者でも、4日目以降の変化を経験した人には表示します。
+  // 条件名（C1〜C4）は表示せず、どの手がかりが変わったかの一般的な説明にとどめます。
+  // ===========================================================
+  const DEBRIEF_TEXT = {
+    ja:{
+      title:"この研究についての説明",
+      p1:"ご参加ありがとうございました。この研究では、人がデジタルなキャラクターを「同じ存在」だと感じるとき、何を手がかりにしているのかを調べています。",
+      p2:"そのため、4日目以降、キャラクターの「名前」「見た目」「性格や反応」「これまでのやりとりを覚えている様子」のうち、どれか一つを研究のために意図的に変えていました。変化は参加者ごとに無作為に決めたもので、あなたのお世話のしかたが原因で起きたものではありません。",
+      p3:"事前に詳しくお伝えしなかったのは、変化に気づくかどうか、どう感じるかを自然な形で調べるためです。ご理解いただけますと幸いです。",
+      p4:"これから参加する人の回答に影響しないよう、研究期間中は、この仕組みを他の人に話さないようお願いします。ご質問は、画面右上の「？」にある問い合わせフォームからお送りください。"
+    },
+    en:{
+      title:"About this study",
+      p1:"Thank you for participating. This study examines what cues people rely on when they judge a digital character to be “the same being.”",
+      p2:"For this purpose, from Day 4 onward, one of the character’s cues — its name, appearance, personality and responses, or signs that it remembered your past interactions — was intentionally changed for research purposes. Which cue changed was decided at random for each participant; it was not caused by the way you cared for the character.",
+      p3:"We did not explain this in detail beforehand so that we could study, in a natural way, whether people notice such changes and how they feel about them. We appreciate your understanding.",
+      p4:"So that future participants’ answers are not affected, please do not tell others about this mechanism while the study is ongoing. Questions can be sent through the inquiry form under the “?” button at the top right."
+    },
+    "zh-CN":{
+      title:"关于本研究的说明",
+      p1:"感谢你的参与。本研究旨在了解人们在判断一个数字角色是“同一个存在”时，依据的是哪些线索。",
+      p2:"为此，从第4天开始，角色的“名字”“外观”“性格或反应”“记得以前与你互动的样子”中，有一项是出于研究目的而被有意改变的。改变哪一项是对每位参与者随机决定的，并不是由你的照护方式引起的。",
+      p3:"之所以没有事先详细说明，是为了以自然的方式了解人们是否会注意到变化以及有何感受。敬请谅解。",
+      p4:"为了不影响之后参与者的回答，在研究期间请不要向他人透露这一机制。如有疑问，请通过画面右上角“？”中的咨询表单发送。"
+    }
+  };
+  function debriefHtml(){
+    const d = DEBRIEF_TEXT[L()] || DEBRIEF_TEXT.ja;
+    return `
+      <div class="debriefBox" role="note">
+        <h3>${esc(d.title)}</h3>
+        <p>${esc(d.p1)}</p>
+        <p>${esc(d.p2)}</p>
+        <p>${esc(d.p3)}</p>
+        <p>${esc(d.p4)}</p>
+      </div>`;
+  }
+  function logDebriefShownOnce(source){
+    // 研究モードのうちに一度だけ記録します（自由プレイ移行後は送信されません）。
+    if(state.mode !== "research" || state.debrief_shown_at) return;
+    state.debrief_shown_at = new Date().toISOString();
+    saveState();
+    logEvent("debrief_shown", {source, debrief_version:"v35.6"});
+  }
+  function participantExperiencedChange(){
+    return !!(state.return_completed || state.changed_applied);
+  }
+
   function renderResearchIncomplete(){
     if(state.mode !== "research") return renderGame("look");
     state.screen = "incomplete";
@@ -6384,6 +6448,7 @@
     saveState();
     root.innerHTML = `
       <section class="card">
+        ${participantExperiencedChange() ? debriefHtml() : ""}
         <h2>${esc(researchIncompleteText("title"))}</h2>
         <p>${esc(researchIncompleteText("body"))}</p>
         <div class="notice small">${esc(researchIncompleteText("free"))}</div>
@@ -6392,6 +6457,7 @@
           <button id="incompleteEndBtn" class="secondary" type="button">${esc(researchIncompleteText("end"))}</button>
         </div>
       </section>`;
+    if(participantExperiencedChange()) logDebriefShownOnce("incomplete_after_change");
     $("incompleteContinueFreeBtn").addEventListener("click", enterFreeMode);
     $("incompleteEndBtn").addEventListener("click", () => {
       logEvent("research_incomplete_end", {
@@ -6420,6 +6486,7 @@
     saveState();
     root.innerHTML = `
       <section class="card">
+        ${debriefHtml()}
         <h2>${esc(t("thanks"))}</h2>
         <p>${esc(t("thanksText"))}</p>
         <div class="resultCard">
@@ -6443,6 +6510,7 @@
           <button id="endBtn" class="secondary" type="button">${esc(t("end"))}</button>
         </div>
       </section>`;
+    logDebriefShownOnce("after_survey_submit");
     bindShareButtons(type);
     $("continueFreeBtn").addEventListener("click", enterFreeMode);
     $("endBtn").addEventListener("click", () => { logEvent("end",{}); setScreen("end"); });
