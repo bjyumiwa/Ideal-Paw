@@ -313,7 +313,7 @@
 
     /* ===========================================================
        案内バブル（ガイド表示）
-       相棒のセリフ（.speech）とは別枠の、操作案内専用の表示です。
+       キャラクターのセリフ（.speech）とは別枠の、操作案内専用の表示です。
        全条件（C1〜C4）で同一の文言・同一のタイミングで表示され、
        実験操作（セリフの頻度・言い回し・記憶手がかり）には関与しません。
        =========================================================== */
@@ -948,6 +948,24 @@
     .revivalPet{
       animation:reviveAppear 2.4s ease-in-out both;
     }
+    /* 4日目の共通演出: 全条件同じ光のみ。変更前の姿を表示しない。 */
+    .returnNeutralLight{
+      width:218px;height:218px;max-width:66vw;max-height:66vw;
+      display:grid;place-items:center;position:relative;isolation:isolate;
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(255,255,255,.93) 0%,rgba(255,247,196,.86) 20%,rgba(152,213,255,.56) 43%,rgba(178,143,255,.20) 65%,transparent 76%);
+      box-shadow:0 0 34px rgba(255,247,196,.42),0 0 70px rgba(171,208,255,.24);
+      animation:returnNeutralPulse 1.8s ease-in-out infinite;
+    }
+    .returnNeutralLight:before,.returnNeutralLight:after{
+      content:"";position:absolute;inset:9%;border:2px solid rgba(255,255,255,.56);
+      border-radius:50%;animation:returnNeutralRing 3.2s linear infinite;
+    }
+    .returnNeutralLight:after{inset:19%;animation-direction:reverse;animation-duration:4.2s}
+    .returnNeutralLight span{font-size:82px;line-height:1;color:white;text-shadow:0 0 26px rgba(255,221,122,.9),0 0 44px rgba(255,255,255,.7)}
+    @keyframes returnNeutralPulse{0%,100%{transform:scale(.94);opacity:.83}50%{transform:scale(1.03);opacity:1}}
+    @keyframes returnNeutralRing{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
     .revivalSpark{
       position:absolute;
       font-size:26px;
@@ -1101,6 +1119,56 @@
     .dayEndedActions button{width:100%}
 
 
+    /* 予想ゲーム B方式：3→2→1→二択表示。早押しの得点は付けない。 */
+    .predictionCountdown{
+      margin:3px auto 6px;width:126px;height:92px;
+      display:grid;place-items:center;
+      border-radius:26px;background:rgba(255,255,255,.89);
+      border:3px solid #ffd76b;box-shadow:0 12px 24px rgba(42,22,72,.16);
+      color:#5c3878;font-size:56px;font-weight:900;line-height:1;
+      font-variant-numeric:tabular-nums;
+    }
+    .predictionCountdown.ready{
+      width:192px;color:#fff;background:linear-gradient(135deg,#f55b9a,#ffa443);
+      border-color:#fff;animation:predictionGoPulse .5s ease-in-out 3;font-size:37px;
+    }
+    .predictionCountdownHint{font-size:14px;font-weight:900;color:#fff;text-shadow:0 2px 9px rgba(28,14,67,.65);margin-bottom:8px}
+    .predictionChoices button{flex:1 1 125px;max-width:185px}
+    .prediction-revealed-move .petImg{animation-duration:1s!important;animation-iteration-count:2!important}
+    .prediction-revealed-sleep .petImg{animation:none!important}
+    @keyframes predictionGoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+    /* v39: カウント終了時は数字を消し、キャラクターの二択だけを出す。 */
+    .predictionTimingArea{min-height:155px;margin:4px 0 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+    .predictionTimingArea .predictionCountdown{margin:0 auto}
+    .predictionTimingArea .predictionChoices{width:100%;justify-content:center;gap:10px}
+    .predictionTimingArea .predictionChoices button{min-height:60px;flex:1 1 130px;max-width:190px;font-size:16px}
+    .predictionTimingArea .hidden{display:none!important}
+
+    /* 確認版：予想中は静止、回答後だけ動きを見せる */
+    .prediction-stage{min-height:255px;overflow:visible}
+    .prediction-stage .petImg,.prediction-stage .fallbackPet{animation:none!important;transform:none!important}
+    .prediction-stage.prediction-revealed-move .petImg,
+    .prediction-stage.prediction-revealed-move .fallbackPet{animation:demoHop .85s ease-in-out 2!important}
+    .prediction-stage.prediction-revealed-move.demo-spin .petImg,
+    .prediction-stage.prediction-revealed-move.demo-spin .fallbackPet{animation:demoSpin 1.1s ease-in-out 1!important}
+    .prediction-stage.prediction-revealed-move.demo-look .petImg,
+    .prediction-stage.prediction-revealed-move.demo-look .fallbackPet{animation:demoLook .75s ease-in-out 3!important}
+    .prediction-stage.prediction-revealed-move.demo-walk .petImg,
+    .prediction-stage.prediction-revealed-move.demo-walk .fallbackPet{animation:demoWalk .7s ease-in-out 3!important}
+    .prediction-stage.prediction-revealed-sleep .petImg,
+    .prediction-stage.prediction-revealed-sleep .fallbackPet{animation:demoSleep .8s ease-out both!important}
+    @keyframes demoHop{0%,100%{transform:translateY(0)}45%{transform:translateY(-58px) scale(1.05)}}
+    @keyframes demoSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    @keyframes demoLook{0%,100%{transform:rotate(0)}25%{transform:rotate(-13deg)}75%{transform:rotate(13deg)}}
+    @keyframes demoWalk{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-22px) rotate(-6deg)}75%{transform:translateX(22px) rotate(6deg)}}
+    @keyframes demoSleep{from{transform:rotate(0) translateY(0)}to{transform:rotate(76deg) translate(12px,24px)}}
+    .prediction-instruction{padding:12px 14px;background:rgba(255,255,255,.90);border-radius:16px;color:#45315f;font-weight:900;font-size:17px;line-height:1.5;margin:8px 0}
+    .prediction-result{background:#fff8dc;border:2px solid #ffce70;border-radius:20px;padding:14px 12px;margin:12px 0;color:#49345f}
+    .prediction-result .action{font-size:24px;font-weight:900;line-height:1.5}
+    .prediction-result .win{font-size:20px;font-weight:900;color:#a03b73;margin-top:8px}
+    .prediction-score{display:flex;justify-content:space-around;gap:6px;background:rgba(255,255,255,.85);border-radius:16px;padding:12px;margin:12px 0;font-size:14px;font-weight:800}
+    .prediction-score strong{display:block;font-size:23px;color:#7842a4}
+    .predictionChoices button{font-size:17px!important;white-space:normal}
   </style>
 </head>
 <body>
@@ -1165,7 +1233,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-distribution-20260922-v33-completion-branch",
+    APP_VERSION: "osewa-20261011-v35.5-log-delivery-retry",
     BACKUP_SCHEMA_VERSION: 1,
     BACKUP_DEBOUNCE_MS: 1800,
     // 研究ログはCloudflare Worker経由で保存します。
@@ -1191,7 +1259,10 @@
     // 1〜3日目の「ごはん・おでかけ・なでる・きれいにする」の合計が
     // 9回以上（1日平均3回以上）なら、手紙の冒頭を「たくさん一緒に過ごせて」にします。
     // 「様子を見る」は、お世話回数には含めません。
-    LETTER_HIGH_CARE_ACTIONS: 9
+    LETTER_HIGH_CARE_ACTIONS: 9,
+    // 2〜5日目の任意の遊び。4日目以降は帰還演出・条件変化の適用後だけ表示。
+    PREDICTION_GAME_FIRST_DAY: 2,
+    PREDICTION_GAME_LAST_DAY: 5
   };
 
   const TEXT = {
@@ -1209,27 +1280,27 @@
       check1:"私は18歳以上であり、研究内容を確認したうえで、自分の意思で参加します。", check2:"自由記述欄などに、氏名・学校名・勤務先・連絡先などを書かないことを確認しました。",
       back:"戻る", agree:"同意して進む", needCheck:"確認項目にチェックしてください。",
       waitingTitle:"プレゼントを準備しています", waitingText:"準備ができると、プレゼントが届きます。", checkGift:"確認する",
-      giftTitle:"プレゼントが届きました", giftText:"プレゼントをクリックしてみてください。お世話する相棒が出てきます。",
-      macaronTitle:"マカロンがあらわれました", macaronText:"相棒が生まれるまで、少し待ってください。", hatchNote:"通常は約30秒で生まれます。",
-      bornTitle:"相棒が生まれました", firstSpeech:"待ってたよ。まずは、やさしくなでてみてね。", petFirst:"なでる",
-      namePetTitle:"名前をつけてください", namePetText:"相棒の姿を見ながら、これから呼ぶ名前を決めてください。", petNameLabel:"相棒の名前", petNamePh:"例：まる、ルナ、相棒 など", confirmPetName:"この名前にする", startCare:"今日のお世話をはじめる",
-      careCueLabel:"相棒のようす", endCare:"また明日ね", endCareTitle:"相棒は眠そうです", endCareText:"そっと休ませて、また明日会いにきてください。", endCareYes:"また明日ね", endCareNo:"戻る", endCareNeedAction:"お世話を1つ以上すると、「また明日ね」を選べます。", endCareWarning:"※「また明日ね」を押すと、次の日になり、かつ1時間以上たつまでお世話できません。", pauseCare:"また後でね", pauseCareNote:"今日はまだ続けられます。後で同じ端末から開いてください。", pausedTitle:"また後で会おうね", pausedText:"○○は、のんびり待っています。", pausedResume:"お世話を再開する", pausedCloseNote:"この画面は閉じても大丈夫です。今日中なら、あとで続きからお世話できます。", dayEndedTitle:"相棒は眠ってしまったようです", dayEndedText:"すやすや眠っています。また明日ね。", resumeCare:"", borderHeartAdded:"ボーダーにハートが1つ増えました。",
-      researchMode:"研究モード", freeMode:"つづきのお世話", day:"日目", petCare:"相棒のお世話",
+      giftTitle:"プレゼントが届きました", giftText:"プレゼントをクリックしてみてください。お世話するキャラクターが出てきます。",
+      macaronTitle:"マカロンがあらわれました", macaronText:"キャラクターが生まれるまで、少し待ってください。", hatchNote:"通常は約30秒で生まれます。",
+      bornTitle:"キャラクターが生まれました", firstSpeech:"待ってたよ。まずは、やさしくなでてみてね。", petFirst:"なでる",
+      namePetTitle:"名前をつけてください", namePetText:"キャラクターの姿を見ながら、これから呼ぶ名前を決めてください。", petNameLabel:"キャラクターの名前", petNamePh:"例：まる、ルナ、キャラクター など", confirmPetName:"この名前にする", startCare:"今日のお世話をはじめる",
+      careCueLabel:"キャラクターのようす", endCare:"また明日ね", endCareTitle:"キャラクターは眠そうです", endCareText:"そっと休ませて、また明日会いにきてください。", endCareYes:"また明日ね", endCareNo:"戻る", endCareNeedAction:"お世話を1つ以上すると、「また明日ね」を選べます。", endCareWarning:"※「また明日ね」を押すと、次の日になり、かつ1時間以上たつまでお世話できません。", pauseCare:"また後でね", pauseCareNote:"今日はまだ続けられます。後で同じ端末から開いてください。", pausedTitle:"また後で会おうね", pausedText:"○○は、のんびり待っています。", pausedResume:"お世話を再開する", pausedCloseNote:"この画面は閉じても大丈夫です。今日中なら、あとで続きからお世話できます。", dayEndedTitle:"キャラクターは眠ってしまったようです", dayEndedText:"すやすや眠っています。また明日ね。", resumeCare:"", borderHeartAdded:"ボーダーにハートが1つ増えました。",
+      researchMode:"研究モード", freeMode:"つづきのお世話", day:"日目", petCare:"キャラクターのお世話",
       mood:"きもち", daily:"今日のお世話", feed:"ごはん", outing:"おでかけ", pet:"なでる", clean:"きれいにする", look:"様子を見る", surveyBtn:"最後のアンケートへ",
-      poopNotice:"部屋が少しよごれています。きれいにしてあげると、相棒が安心します。",
+      poopNotice:"部屋が少しよごれています。きれいにしてあげると、キャラクターが安心します。",
       asleep:"すやすや眠っています。少し時間をおいて、また会いに来てください。",
       foodTitle:"ごはん", foodText:"どちらをあげますか。", food1:"ふんわりパン", food2:"小さなスープ",
       outingTitle:"おでかけ", outingText:"どちらへ行きますか。", outing1:"花の道", outing2:"星の丘",
       close:"閉じる", surveyTitle:"最後のアンケート", surveyLead:"感じたことに近いものを、そのまま選んでください。正解はありません。氏名や学校名など、個人が分かる情報は書かないでください。",
-      qIdentity:"変化後に現れた存在は、3日目まで関わっていた存在と同じ存在だと思いますか。", qAttachment:"お世話した相棒を大事に感じましたか。", qConcern:"お世話していない時間も、相棒のことが少し気になりましたか。", qNotice:"4日目以降、相棒のどこかが変わったと感じましたか。",
+      qIdentity:"変化後に現れた存在は、3日目まで関わっていた存在と同じ存在だと思いますか。", qAttachment:"お世話したキャラクターを大事に感じましたか。", qConcern:"お世話していない時間も、キャラクターのことが少し気になりましたか。", qNotice:"4日目以降、キャラクターのどこかが変わったと感じましたか。",
       select:"選択してください", likert:["1 まったくそう思わない","2 あまりそう思わない","3 少しそう思わない","4 どちらともいえない","5 少しそう思う","6 かなりそう思う","7 とてもそう思う"],
       noticed:"変わったと感じた", notNoticed:"特に変わったとは感じなかった", unsure:"わからない",
       reasonTitle:"同じ、または違うと感じた理由に近いものを選んでください。", reasons:{name:"名前",look:"見た目",personality:"反応や性格",memory:"過去に自分が世話をした記憶",feeling:"なんとなくの印象",action:"自分がしたお世話の内容"},
       qFree:"そう感じた理由を、短く書いてください。", freePh:"個人が分かる情報は書かないでください。", submit:"回答を送信する", missing:"未回答の項目があります。選択してから送信してください。",
-      thanks:"ありがとうございました", thanksText:"5日間のお世話とアンケートへの回答が終わりました。", cardTitle:"あなたにぴったりな相棒カード", cardNote:"このカードは研究条件を示すものではありません。5日間のお世話ログと最後のアンケート回答にもとづく、参加後のお楽しみ表示です。",
+      thanks:"ありがとうございました", thanksText:"5日間のお世話とアンケートへの回答が終わりました。", cardTitle:"あなたにぴったりなキャラクターカード", cardNote:"このカードは研究条件を示すものではありません。5日間のお世話ログと最後のアンケート回答にもとづく、参加後のお楽しみ表示です。",
       continueFree:"つづきのお世話をする", end:"終わる", endedTitle:"終了しました", endedText:"ご参加ありがとうございました。", closeWindow:"この画面を閉じてください。",
-      freeGiftLead:"ここから先は「つづきのお世話」です。研究ログは送信されません。最初と同じように、プレゼントから新しい相棒が生まれます。",
-      zukanTitle:"相棒カード図鑑", zukanOpen:"図鑑を見る", zukanFind:"カードを探す", zukanBack:"お世話に戻る", zukanProgress:"集めたカード", zukanGot:"新しいカードを見つけました", zukanAlready:"もう少しで見つかりそう",
+      freeGiftLead:"ここから先は「つづきのお世話」です。研究ログは送信されません。最初と同じように、プレゼントから新しいキャラクターが生まれます。",
+      zukanTitle:"キャラクターカード図鑑", zukanOpen:"図鑑を見る", zukanFind:"カードを探す", zukanBack:"お世話に戻る", zukanProgress:"集めたカード", zukanGot:"新しいカードを見つけました", zukanAlready:"もう少しで見つかりそう",
       renameTitle:"名前をつけてください", renameHelp:"今日から表示する名前を入力してください。", renameSubmit:"決定する",
     },
     en:{
@@ -1246,27 +1317,27 @@
       check1:"I am 18 years or older, have read the study information, and choose to participate voluntarily.", check2:"I confirm that I will not write identifying information such as my name, school, workplace, or contact details.",
       back:"Back", agree:"Agree and continue", needCheck:"Please check the confirmation items.",
       waitingTitle:"Preparing your present", waitingText:"A present will arrive when preparation is complete.", checkGift:"Check",
-      giftTitle:"A present has arrived", giftText:"Tap the present. Your companion will appear.",
-      macaronTitle:"A macaron appeared", macaronText:"Please wait a little until your companion is born.", hatchNote:"It usually takes about 30 seconds.",
-      bornTitle:"Your companion was born", firstSpeech:"I was waiting for you. First, try petting me gently.", petFirst:"Pet",
-      namePetTitle:"Give your companion a name", namePetText:"Look at your companion while choosing the name you will use.", petNameLabel:"Companion name", petNamePh:"e.g., Maru, Luna, Buddy", confirmPetName:"Use this name", startCare:"Start today’s care",
-      careCueLabel:"Your companion’s state", endCare:"See you tomorrow", endCareTitle:"Your companion looks sleepy", endCareText:"Let it rest quietly, and come back tomorrow.", endCareYes:"See you tomorrow", endCareNo:"Back", endCareNeedAction:"After at least one care action, you can say “See you tomorrow.”", endCareWarning:"※ After you press “See you tomorrow,” care is locked until the next day and for at least one hour.", pauseCare:"See you later", pauseCareNote:"You can continue today. Open this again later on the same device.", pausedTitle:"See you again later", pausedText:"○○ is waiting peacefully.", pausedResume:"Resume care", pausedCloseNote:"You may close this screen. You can continue later today from the same point.", dayEndedTitle:"Your companion seems to have fallen asleep", dayEndedText:"It is sleeping peacefully. See you tomorrow.", resumeCare:"", borderHeartAdded:"A heart was added to the border.",
-      researchMode:"Research mode", freeMode:"Continued care", day:"Day", petCare:"Companion care",
+      giftTitle:"A present has arrived", giftText:"Tap the present. Your character will appear.",
+      macaronTitle:"A macaron appeared", macaronText:"Please wait a little until your character is born.", hatchNote:"It usually takes about 30 seconds.",
+      bornTitle:"Your character was born", firstSpeech:"I was waiting for you. First, try petting me gently.", petFirst:"Pet",
+      namePetTitle:"Give your character a name", namePetText:"Look at your character while choosing the name you will use.", petNameLabel:"Character name", petNamePh:"e.g., Maru, Luna, Buddy", confirmPetName:"Use this name", startCare:"Start today’s care",
+      careCueLabel:"Your character’s state", endCare:"See you tomorrow", endCareTitle:"Your character looks sleepy", endCareText:"Let it rest quietly, and come back tomorrow.", endCareYes:"See you tomorrow", endCareNo:"Back", endCareNeedAction:"After at least one care action, you can say “See you tomorrow.”", endCareWarning:"※ After you press “See you tomorrow,” care is locked until the next day and for at least one hour.", pauseCare:"See you later", pauseCareNote:"You can continue today. Open this again later on the same device.", pausedTitle:"See you again later", pausedText:"○○ is waiting peacefully.", pausedResume:"Resume care", pausedCloseNote:"You may close this screen. You can continue later today from the same point.", dayEndedTitle:"Your character seems to have fallen asleep", dayEndedText:"It is sleeping peacefully. See you tomorrow.", resumeCare:"", borderHeartAdded:"A heart was added to the border.",
+      researchMode:"Research mode", freeMode:"Continued care", day:"Day", petCare:"Character care",
       mood:"Feeling", daily:"Care today", feed:"Food", outing:"Go out", pet:"Pet", clean:"Clean", look:"Look", surveyBtn:"Final survey",
-      poopNotice:"The room is a little messy. Cleaning it will help your companion feel safe.",
+      poopNotice:"The room is a little messy. Cleaning it will help your character feel safe.",
       asleep:"It is sleeping peacefully. Please come back a little later.",
       foodTitle:"Food", foodText:"Which one will you give?", food1:"Soft bread", food2:"Small soup",
       outingTitle:"Go out", outingText:"Where will you go?", outing1:"Flower road", outing2:"Star hill",
       close:"Close", surveyTitle:"Final survey", surveyLead:"Choose what is closest to how you felt. There is no right answer. Do not write identifying information such as your name or school.",
-      qIdentity:"Do you think the being that appeared after the change is the same being you cared for until Day 3?", qAttachment:"Did you feel that your companion was important to you?", qConcern:"Did you think about your companion even when you were not caring for it?", qNotice:"After Day 4, did you feel that something about your companion had changed?",
+      qIdentity:"Do you think the being that appeared after the change is the same being you cared for until Day 3?", qAttachment:"Did you feel that your character was important to you?", qConcern:"Did you think about your character even when you were not caring for it?", qNotice:"After Day 4, did you feel that something about your character had changed?",
       select:"Please choose", likert:["1 Strongly disagree","2 Disagree","3 Slightly disagree","4 Neither agree nor disagree","5 Slightly agree","6 Agree","7 Strongly agree"],
       noticed:"I felt it had changed", notNoticed:"I did not particularly feel a change", unsure:"I am not sure",
       reasonTitle:"Choose the reasons closest to why you felt it was the same or different.", reasons:{name:"Name",look:"Appearance",personality:"Responses or personality",memory:"Memory of my past care",feeling:"Intuitive impression",action:"My own care actions"},
       qFree:"Briefly write why you felt that way.", freePh:"Do not write identifying information.", submit:"Submit answers", missing:"Some required items are unanswered. Please choose an answer.",
-      thanks:"Thank you", thanksText:"The five-day care game and final survey are complete.", cardTitle:"Your matching companion card", cardNote:"This card does not show the research condition. It is a post-participation result based on your five-day care log and final survey answers.",
+      thanks:"Thank you", thanksText:"The five-day care game and final survey are complete.", cardTitle:"Your matching character card", cardNote:"This card does not show the research condition. It is a post-participation result based on your five-day care log and final survey answers.",
       continueFree:"Continue caring", end:"Finish", endedTitle:"Finished", endedText:"Thank you for participating.", closeWindow:"You may close this screen.",
-      freeGiftLead:"From here, this is Continued Care. No research logs will be sent. Like the beginning, a new companion will be born from a present.",
-      zukanTitle:"Companion Card Collection", zukanOpen:"Open collection", zukanFind:"Find a card", zukanBack:"Back to care", zukanProgress:"Cards collected", zukanGot:"You found a new card", zukanAlready:"Almost found one",
+      freeGiftLead:"From here, this is Continued Care. No research logs will be sent. Like the beginning, a new character will be born from a present.",
+      zukanTitle:"Character Card Collection", zukanOpen:"Open collection", zukanFind:"Find a card", zukanBack:"Back to care", zukanProgress:"Cards collected", zukanGot:"You found a new card", zukanAlready:"Almost found one",
       renameTitle:"Give a name", renameHelp:"Enter the name to display from today.", renameSubmit:"OK",
     },
     "zh-CN":{
@@ -1283,26 +1354,26 @@
       check1:"我已满18岁，已阅读研究内容，并自愿参加。", check2:"我确认不会在自由填写栏中写姓名、学校名、工作单位、联系方式等可识别个人的信息。",
       back:"返回", agree:"同意并继续", needCheck:"请勾选确认项目。",
       waitingTitle:"正在准备礼物", waitingText:"准备完成后，礼物会送到。", checkGift:"确认",
-      giftTitle:"礼物送到了", giftText:"请点击礼物。你要照护的小伙伴会出现。",
-      macaronTitle:"马卡龙出现了", macaronText:"请稍等，直到小伙伴诞生。", hatchNote:"通常约30秒后诞生。",
-      bornTitle:"小伙伴诞生了", firstSpeech:"我一直在等你。首先，轻轻摸摸它。", petFirst:"摸摸",
-      namePetTitle:"给小伙伴取名", namePetText:"请一边看着小伙伴，一边决定今后要叫它的名字。", petNameLabel:"小伙伴的名字", petNamePh:"例：小圆、露娜、伙伴", confirmPetName:"使用这个名字", startCare:"开始今天的照护",
-      careCueLabel:"小伙伴的状态", endCare:"明天见", endCareTitle:"小伙伴好像困了", endCareText:"让它安静休息，明天再来吧。", endCareYes:"明天见", endCareNo:"返回", endCareNeedAction:"至少完成一项照护后，可以对它说“明天见”。", endCareWarning:"※按下“明天见”后，要到第二天且至少经过1小时才能再次照护。", pauseCare:"待会儿见", pauseCareNote:"今天还可以继续。请稍后用同一设备再次打开。", pausedTitle:"待会儿再见", pausedText:"○○正在悠闲地等你。", pausedResume:"继续照护", pausedCloseNote:"可以关闭此画面。今天之内可以从这里继续照护。", dayEndedTitle:"小伙伴好像睡着了", dayEndedText:"它正在安静地睡觉。明天见。", resumeCare:"", borderHeartAdded:"边框上增加了一颗爱心。",
-      researchMode:"研究模式", freeMode:"继续照护", day:"第", petCare:"小伙伴照护",
+      giftTitle:"礼物送到了", giftText:"请点击礼物。你要照护的角色会出现。",
+      macaronTitle:"马卡龙出现了", macaronText:"请稍等，直到角色诞生。", hatchNote:"通常约30秒后诞生。",
+      bornTitle:"角色诞生了", firstSpeech:"我一直在等你。首先，轻轻摸摸它。", petFirst:"摸摸",
+      namePetTitle:"给角色取名", namePetText:"请一边看着角色，一边决定今后要叫它的名字。", petNameLabel:"角色的名字", petNamePh:"例：小圆、露娜、小星", confirmPetName:"使用这个名字", startCare:"开始今天的照护",
+      careCueLabel:"角色的状态", endCare:"明天见", endCareTitle:"角色好像困了", endCareText:"让它安静休息，明天再来吧。", endCareYes:"明天见", endCareNo:"返回", endCareNeedAction:"至少完成一项照护后，可以对它说“明天见”。", endCareWarning:"※按下“明天见”后，要到第二天且至少经过1小时才能再次照护。", pauseCare:"待会儿见", pauseCareNote:"今天还可以继续。请稍后用同一设备再次打开。", pausedTitle:"待会儿再见", pausedText:"○○正在悠闲地等你。", pausedResume:"继续照护", pausedCloseNote:"可以关闭此画面。今天之内可以从这里继续照护。", dayEndedTitle:"角色好像睡着了", dayEndedText:"它正在安静地睡觉。明天见。", resumeCare:"", borderHeartAdded:"边框上增加了一颗爱心。",
+      researchMode:"研究模式", freeMode:"继续照护", day:"第", petCare:"角色照护",
       mood:"心情", daily:"今天的照护", feed:"喂食", outing:"外出", pet:"抚摸", clean:"清理", look:"查看状态", surveyBtn:"最后问卷",
-      poopNotice:"房间有点脏。帮它清理后，小伙伴会更安心。",
+      poopNotice:"房间有点脏。帮它清理后，角色会更安心。",
       asleep:"它正在睡觉。请稍后再来看它。",
       foodTitle:"喂食", foodText:"要给哪一个？", food1:"松软面包", food2:"小小汤",
       outingTitle:"外出", outingText:"要去哪里？", outing1:"花之路", outing2:"星之丘",
       close:"关闭", surveyTitle:"最后问卷", surveyLead:"请选择最接近你感受的选项。没有正确答案。请不要写姓名、学校名等可识别个人的信息。",
-      qIdentity:"变化后出现的存在，和第3天以前你照护的存在是同一个存在吗？", qAttachment:"你觉得照护的小伙伴对你来说重要吗？", qConcern:"不在照护的时候，你也会有一点在意小伙伴吗？", qNotice:"第4天以后，你觉得小伙伴有什么地方变了吗？",
+      qIdentity:"变化后出现的存在，和第3天以前你照护的存在是同一个存在吗？", qAttachment:"你觉得照护的角色对你来说重要吗？", qConcern:"不在照护的时候，你也会有一点在意角色吗？", qNotice:"第4天以后，你觉得角色有什么地方变了吗？",
       select:"请选择", likert:["1 完全不同意","2 不太同意","3 有点不同意","4 说不清","5 有点同意","6 比较同意","7 非常同意"],
       noticed:"感觉变了", notNoticed:"没有特别感觉到变化", unsure:"不确定",
       reasonTitle:"请选择你觉得相同或不同的理由。", reasons:{name:"名字",look:"外观",personality:"反应或性格",memory:"自己曾经照护过的记忆",feeling:"直觉印象",action:"自己做过的照护内容"},
       qFree:"请简单写下你这样感受的理由。", freePh:"请不要写可识别个人的信息。", submit:"提交回答", missing:"还有未回答的项目。请先选择。",
-      thanks:"谢谢", thanksText:"五天的照护和最后问卷已经完成。", cardTitle:"适合你的小伙伴卡片", cardNote:"这张卡片不表示研究条件。它是根据五天照护日志和最后问卷回答显示的参与后小结果。",
+      thanks:"谢谢", thanksText:"五天的照护和最后问卷已经完成。", cardTitle:"适合你的角色卡片", cardNote:"这张卡片不表示研究条件。它是根据五天照护日志和最后问卷回答显示的参与后小结果。",
       continueFree:"继续照护", end:"结束", endedTitle:"已结束", endedText:"感谢你的参加。", closeWindow:"请关闭这个画面。",
-      freeGiftLead:"从这里开始是继续照护。不会发送研究日志。和最开始一样，会从礼物中诞生新的伙伴。",
+      freeGiftLead:"从这里开始是继续照护。不会发送研究日志。和最开始一样，会从礼物中诞生新的角色。",
       zukanTitle:"剪影图鉴", zukanOpen:"查看图鉴", zukanFind:"寻找剪影", zukanBack:"返回照护", zukanProgress:"已收集剪影", zukanGot:"发现了新的剪影", zukanAlready:"好像快找到了",
       renameTitle:"给它取名", renameHelp:"请输入从今天开始显示的名字。", renameSubmit:"确定",
     }
@@ -1315,9 +1386,9 @@
       letterBodyHigh:"ここで食べた『星のしずく』が、\nあんまりおいしかったから、\n\nマカロン星のみんなにも\n教えてあげたくなっちゃった。\n\nひとっ走り、届けてくるね。\n\n明日には帰ります。",
       letterBodyLow:"おなかがすいたので、\nマカロン星まで\nおやつを食べに行ってきます。\n\n明日には帰ります。",
       letterFrom:"{pet}より",
-      returnTitle:"マカロン星から帰ってきます",
-      returnText:"相棒がマカロン星から帰ってきています……",
-      returnDone:"{pet}が帰ってきました。"
+      returnTitle:"4日目のはじまり",
+      returnText:"画面を準備しています……",
+      returnDone:"4日目のお世話を始められます。"
     },
     en:{
       letterTitle:"A letter has been left here",
@@ -1325,9 +1396,9 @@
       letterBodyHigh:"The ‘Star Drop’ I ate here was so delicious\nthat I wanted everyone on Macaron Star\nto know about it too.\n\nI’m taking some over there in a hurry.\n\nI’ll be back tomorrow.",
       letterBodyLow:"I’m hungry,\nso I’m going to Macaron Star\nto have a snack.\n\nI’ll be back tomorrow.",
       letterFrom:"From {pet}",
-      returnTitle:"Returning from Macaron Star",
-      returnText:"Your companion is returning from Macaron Star...",
-      returnDone:"{pet} has returned."
+      returnTitle:"Day 4 begins",
+      returnText:"Preparing the next screen...",
+      returnDone:"Day 4 care is ready to begin."
     },
     "zh-CN":{
       letterTitle:"这里留着一封信",
@@ -1335,9 +1406,9 @@
       letterBodyHigh:"我在这里吃过的“星之滴”\n实在太好吃了，\n\n所以我想让马卡龙星的大家\n也知道它有多好吃。\n\n我这就赶快送过去。\n\n明天我会回来。",
       letterBodyLow:"我肚子饿了，\n所以要去马卡龙星\n吃点心。\n\n明天我会回来。",
       letterFrom:"{pet}留",
-      returnTitle:"正在从马卡龙星回来",
-      returnText:"小伙伴正在从马卡龙星回来……",
-      returnDone:"{pet}回来了。"
+      returnTitle:"第4天开始了",
+      returnText:"正在准备画面……",
+      returnDone:"现在可以开始第4天的照护。"
     }
   };
   function transitionText(key, vars={}){
@@ -1351,7 +1422,7 @@
       .replaceAll("{pet}", vars.pet ?? transitionPetName() ?? "");
   }
   function transitionPetName(){
-    return String(state.original_pet_name || state.pet_name || (L()==="en" ? "Buddy" : L()==="zh-CN" ? "伙伴" : "相棒"));
+    return String(state.original_pet_name || state.pet_name || (L()==="en" ? "Buddy" : L()==="zh-CN" ? "角色" : "キャラクター"));
   }
 
 
@@ -1441,7 +1512,7 @@
   };
 
   // ユーザーが最初に入力した「呼ばれたい名前」を使うセリフ。
-  // これは、相棒が「相手を覚えている」と感じられる記憶手がかりになるため、
+  // これは、キャラクターが「相手を覚えている」と感じられる記憶手がかりになるため、
   // C4（記憶手がかり変更条件）の4日目以降では出さないようにします。
   const PLAYER_NAME_MEMORY_LINES = {
     ja:[
@@ -2428,10 +2499,19 @@
       changed_applied:false,
       renamed_after_change:false,
       memory_cues_enabled:true,
+      c4_name_answered:false,
+      c4_name_given:false,
+      c4_name_cue_shown:false,
       letter_shown_at:"",
       letter_departure_at:"",
       letter_care_level:"",
       letter_care_actions:0,
+      mini_game_round:null,
+      mini_game_prechange:{played:0,player_wins:0,character_wins:0,player_matches:0,character_matches:0},
+      mini_game_memory_cue_day4_shown:false,
+      mini_game_prechange_migrated:false,
+      mini_game_stats:{played:0,wins:0,losses:0},
+      mini_game_match:{player:0,pet:0,finished:false},
       return_started_at:"",
       return_completed:false,
       return_completed_at:"",
@@ -2530,7 +2610,7 @@
     return changed;
   }
 
-  // サーバーへ送るのは「同じ相棒を復元するために必要な最小限の状態」のみ。
+  // サーバーへ送るのは「同じキャラクターを復元するために必要な最小限の状態」のみ。
   // 呼ばれたい名前(player_name)、通知設定、アンケート自由記述などは含めません。
   function buildResumeSnapshot(){
     if(!state || !state.research_id) return null;
@@ -2547,7 +2627,9 @@
       "extra_care_resume_count","extra_care_border_hearts","idle_activity","idle_activity_marker",
       "daily_visit_markers","cue_logged_keys","satisfied_sleep_until","life_day_marker","free_started_at",
       "changed_applied","renamed_after_change","memory_cues_enabled",
+      "c4_name_answered","c4_name_given","c4_name_cue_shown",
       "letter_shown_at","letter_departure_at","letter_care_level","letter_care_actions",
+      "mini_game_round","mini_game_prechange","mini_game_memory_cue_day4_shown","mini_game_prechange_migrated","mini_game_stats","mini_game_match",
       "return_started_at","return_completed","return_completed_at","name_cue_days",
       "mode","research_day_care","research_completion_status","research_completed_at",
       "research_incomplete_at","research_incomplete_reason","research_missing_days","reward_eligible",
@@ -2935,7 +3017,7 @@
   // 生活リズム設定：
   // 研究モードでは、デジタル存在が生まれた時刻から24時間ごとに日数が進みます。
   // つづきのお世話でも、従来どおり開始から24時間ごとの生活サイクルにします.
-  // 最後のお世話から半日（12時間）以上たったら、相棒は待っているうちに眠ります。
+  // 最後のお世話から半日（12時間）以上たったら、キャラクターは待っているうちに眠ります。
   // その状態でお世話ボタンを押すと起きて、また関わりが始まります。
   // 「ごはん・おでかけ・なでる・きれいにする」の4つがすべて満タンになっても、
   // 自動では眠らず、参加者が「また明日ね」を押すまでお世話を続けられます。
@@ -3184,7 +3266,7 @@
     if(!allCareMetersFull()) return false;
 
     // 4項目が満タンになったことだけを記録します。
-    // 相棒は眠らず、メーターもリセットせず、そのままお世話を続けられます。
+    // キャラクターは眠らず、メーターもリセットせず、そのままお世話を続けられます。
     state.daily_score = 100;
     state.full_meter_count = Number(state.full_meter_count || 0) + 1;
     logEvent("care_meters_full", {
@@ -3302,12 +3384,86 @@
     const cls = `petImg ${small ? "small" : ""} ${motion}`.trim();
     // 画像検索アイコン対策：キャラクターは img タグではなく CSS の background-image として表示します。
     // これで Edge の Visual Search が「画像」として拾いにくくなります。
-    return `<div class="${esc(cls)}" role="img" aria-label="companion" data-no-visual-search="true" draggable="false" oncontextmenu="return false" style="background-image:url('${esc(src)}')"></div>`;
+    return `<div class="${esc(cls)}" role="img" aria-label="character" data-no-visual-search="true" draggable="false" oncontextmenu="return false" style="background-image:url('${esc(src)}')"></div>`;
   }
   function macaronHtml(){
     const img = state.macaron_img || "public/assets/macarons/yellow_macaron.png";
     return `<div class="macaronImg" role="img" aria-label="macaron" data-no-visual-search="true" draggable="false" oncontextmenu="return false" style="background-image:url('${esc(img)}')"></div>`;
   }
+  // v35.5: 通信エラーで失われないよう、これから発生する研究ログだけを
+  // 既存ログとは別の送信待ちキューに保存します。過去ログを一括再送すると
+  // 二重計上になるため、従来のLOG_KEYは再送対象にしません。
+  const DELIVERY_OUTBOX_KEY = "osewa_research_delivery_outbox_v35_5";
+  const DELIVERY_RETRY_MS = 30000;
+  let deliveryInFlight = false;
+  let deliveryRetryTimer = null;
+
+  function getDeliveryOutbox(){
+    try{
+      const entries = JSON.parse(localStorage.getItem(DELIVERY_OUTBOX_KEY) || "[]");
+      return Array.isArray(entries) ? entries.filter(x=>x && x.id && x.payload) : [];
+    }catch(_e){return [];}
+  }
+  function putDeliveryOutbox(entries){
+    localStorage.setItem(DELIVERY_OUTBOX_KEY, JSON.stringify(entries));
+  }
+  function scheduleDeliveryRetry(){
+    if(deliveryRetryTimer !== null) return;
+    deliveryRetryTimer = setTimeout(() => {
+      deliveryRetryTimer = null;
+      flushDeliveryOutbox();
+    }, DELIVERY_RETRY_MS);
+  }
+  function enqueueLogDelivery(payload){
+    // 送信待ちの記録を保存できなかった場合も、従来のLOG_KEY側は残ります。
+    try{
+      const outbox = getDeliveryOutbox();
+      outbox.push({id:uid("EV"),payload});
+      putDeliveryOutbox(outbox);
+      flushDeliveryOutbox();
+    }catch(_e){
+      // localStorage満杯時には従来どおり即時送信を試みます。
+      const endpoint = String(CONFIG.LOG_ENDPOINT || "").trim();
+      if(endpoint.startsWith("https://")){
+        fetch(endpoint,{
+          method:"POST", mode:"cors",
+          headers:{"Content-Type":"text/plain;charset=utf-8"},
+          body:JSON.stringify(payload),keepalive:true
+        }).catch(()=>{});
+      }
+    }
+  }
+  async function flushDeliveryOutbox(){
+    if(deliveryInFlight) return;
+    const endpoint = String(CONFIG.LOG_ENDPOINT || "").trim();
+    if(!endpoint.startsWith("https://")) return;
+    if(deliveryRetryTimer !== null){clearTimeout(deliveryRetryTimer);deliveryRetryTimer=null;}
+    deliveryInFlight = true;
+    try{
+      while(true){
+        const entries = getDeliveryOutbox();
+        if(!entries.length) break;
+        const first = entries[0];
+        const response = await fetch(endpoint,{
+          method:"POST", mode:"cors",
+          headers:{"Content-Type":"text/plain;charset=utf-8"},
+          body:JSON.stringify(first.payload),keepalive:true
+        });
+        // HTTP成功はCloudflare中継の受理を示すのみ。
+        // Googleスプレッドシートへの実際の記録確認はGAS側で行います。
+        if(!response.ok) throw new Error(`log_delivery_http_${response.status}`);
+        const latest = getDeliveryOutbox();
+        const index = latest.findIndex(item=>item.id===first.id);
+        if(index>=0){latest.splice(index,1);putDeliveryOutbox(latest);}
+      }
+    }catch(_e){
+      // ネットワーク切断時もキューを消さず、後で再送する。
+    }finally{
+      deliveryInFlight = false;
+      if(getDeliveryOutbox().length) scheduleDeliveryRetry();
+    }
+  }
+
   function logEvent(event_type, details={}){
     // つづきのお世話は研究ログ・GAS送信の対象外にします。
     // 管理者確認のため、この端末内の free_debug だけに残します。
@@ -3347,16 +3503,7 @@
     const logs = JSON.parse(localStorage.getItem(LOG_KEY) || "[]");
     logs.push(payload);
     localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(-700)));
-    const endpoint = String(CONFIG.LOG_ENDPOINT || "").trim();
-    if(endpoint.startsWith("https://")){
-      fetch(endpoint,{
-        method:"POST",
-        mode:"cors",
-        headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify(payload),
-        keepalive:true
-      }).catch(()=>{});
-    }
+    enqueueLogDelivery(payload);
   }
 
   function render(){
@@ -3372,6 +3519,7 @@
     if(s==="firstPet") return renderFirstPet();
     if(s==="namePet") return renderNamePet();
     if(s==="letter") return renderLetter();
+    if(s==="miniGame") return renderPredictionGame();
     if(s==="returning") return renderReturning();
     if(s==="game") return renderGame();
     if(s==="survey") return renderSurvey();
@@ -3386,6 +3534,237 @@
     saveState();
     render();
     window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  // =================================================================
+  // 任意の予想ゲーム：遊びは研究完遂のお世話に含めない。
+  // 4・5日目は「変更後の名前・外見・反応」に自動連動する。
+  // =================================================================
+  const PREDICTION_MOVES = {
+    rabbit_pink:{ja:"ぴょんと跳ねる",en:"hop", "zh-CN":"跳起来"},
+    kangaroo_blue:{ja:"高く跳ぶ",en:"jump high", "zh-CN":"跳得很高"},
+    penguin_yellow:{ja:"よちよち歩く",en:"waddle", "zh-CN":"摇摇摆摆走"},
+    seal_gray:{ja:"ごろんと回る",en:"roll over", "zh-CN":"翻滚"},
+    lizard_green:{ja:"きょろきょろする",en:"look around", "zh-CN":"东张西望"},
+    cat_purple:{ja:"くるっと回る",en:"spin", "zh-CN":"转一圈"}
+  };
+  const PREDICTION_TEXT={
+    ja:{title:"何がしたいでしょう？",lead:"今、何がしたいか当ててね！",sleep:"ねる",go:"予想ゲームで遊ぶ",back:"お世話に戻る",backLetter:"手紙に戻る",backEnded:"休憩画面に戻る",one:"せーの！",won:"{user}の勝ち！",lost:"{pet}の勝ち！",count:"あそんだ回数",note:"予想ゲームはお世話の完遂回数には含まれません。",
+      firstToFive:"5点先取！",rule:"予想が当たれば{user}に1点、外れたら{pet}に1点。",picked:"{pet}が選んだのは…",matchWinner:"{winner}の勝ち！",matchEndRule:"先に5点を取った方が勝ち！",resultTitle:"結果発表！",choicePrompt:"{pet}は次に何をするかな？",waitCount:"3・2・1 のあとに予想してね！",countdownHint:"3・2・1のあとに2つの選択肢が出ます",rematch:"もう一度勝負する",nextRound:"次の勝負へ",fallbackUser:"あなた",fallbackPet:"キャラクター"},
+    en:{title:"What does your character want?",lead:"Guess what your character wants to do now!",sleep:"sleep",go:"Play the guessing game",back:"Back to care",backLetter:"Back to the letter",backEnded:"Back to rest",one:"Ready, go!",won:"{user} wins!",lost:"{pet} wins!",count:"Games played",note:"The guessing game does not count as a care action toward completing the study.",
+      firstToFive:"First to 5 points!",rule:"Correct guess: 1 point for {user}. Wrong guess: 1 point for {pet}.",picked:"{pet} chose…",matchWinner:"{winner} wins!",matchEndRule:"The first to score 5 points wins!",resultTitle:"Results!",choicePrompt:"What will {pet} do next?",waitCount:"Make your guess after 3, 2, 1!",countdownHint:"Two choices will appear after the countdown.",rematch:"Play again",nextRound:"Next round",fallbackUser:"You",fallbackPet:"Character"},
+    "zh-CN":{title:"它现在想做什么？",lead:"猜猜角色现在想做什么！",sleep:"睡觉",go:"玩猜一猜游戏",back:"返回照护",backLetter:"返回信件",backEnded:"返回休息画面",one:"开始！",won:"{user}赢了！",lost:"{pet}赢了！",count:"游戏次数",note:"猜谜游戏不计入研究所需的照护完成次数。",
+      firstToFive:"先得5分者获胜！",rule:"猜对了，{user}得1分；猜错了，{pet}得1分。",picked:"{pet}选择了……",matchWinner:"{winner}赢了！",matchEndRule:"先得5分的一方获胜！",resultTitle:"公布结果！",choicePrompt:"{pet}接下来会做什么？",waitCount:"3、2、1之后开始猜吧！",countdownHint:"倒计时结束后会出现两个选项。",rematch:"再玩一局",nextRound:"下一轮",fallbackUser:"你",fallbackPet:"角色"}
+  };
+  function predictionText(key){ return PREDICTION_TEXT[L()]?.[key] || PREDICTION_TEXT.ja[key] || key; }
+  function predictionFormat(key, vars={}){
+    return predictionText(key).replace(/\{(\w+)\}/g, (_,name)=>String(vars[name]??""));
+  }
+  function predictionAllowed(){
+    return state.mode === "research" && state.pet_name &&
+      currentDay() >= CONFIG.PREDICTION_GAME_FIRST_DAY &&
+      currentDay() <= CONFIG.PREDICTION_GAME_LAST_DAY &&
+      (currentDay() < 4 || (state.return_completed && state.changed_applied)) &&
+      // C4の4日目以降は、名前の聞き直しが終わるまで予想ゲームを表示しない。
+      !(currentDay() >= 4 && state.condition_id === "C4" && !state.c4_name_answered) &&
+      state.research_completion_status !== "incomplete" && !state.completed_survey;
+  }
+  function predictionButtonHtml(){
+    return predictionAllowed() ? `<button id="predictionStartBtn" class="secondary wide" type="button" style="margin-top:12px">${esc(predictionText("go"))}</button>` : "";
+  }
+  function bindPredictionButton(){
+    const b=$("predictionStartBtn");
+    if(b) b.addEventListener("click", startPredictionGame);
+  }
+  // ミニゲームB方式：「3 → 2 → 1 → 二択ボタン登場」。タップの速さは採点しない。
+  let predictionCountdownTimer = null;
+  function clearPredictionCountdownTimer(){
+    if(predictionCountdownTimer !== null){
+      clearInterval(predictionCountdownTimer);
+      predictionCountdownTimer = null;
+    }
+  }
+  // 5点先取の対戦。日が切り替わった場合は新しい対戦として開始する。
+  // これにより、3日目の勝敗や名前が4日目に残ることを防ぐ。
+  function predictionMatch(){
+    const day=currentDay();
+    let m=state.mini_game_match;
+    if(!m || Number(m.day || day)!==day){
+      m={day,player:0,pet:0,finished:false};
+      state.mini_game_round=null;
+    }
+    if(!m.day) m.day=day;
+    state.mini_game_match=m;
+    return m;
+  }
+  function replayPredictionMatch(){
+    state.mini_game_match={day:currentDay(),player:0,pet:0,finished:false};
+    saveState();
+    startPredictionGame();
+  }
+  function startPredictionGame(){
+    if(!predictionAllowed()) return returnFromPredictionGame();
+    clearPredictionCountdownTimer();
+    if(predictionMatch().finished) return renderPredictionGame();
+    // キャラクターの行動は先に等確率で決定し、カウントダウン後の選択と比較する。
+    // ゲーム回数・勝敗は通常のお世話回数、コイン、抽選資格に影響しない。
+    state.mini_game_round = {
+      day:currentDay(),character_id:currentCharacter().id,behavior_character_id:behaviorCharacterId(),
+      character_choice:Math.random()<.5 ? "move" : "sleep",answered:false,
+      countdown_started_at:Date.now()
+    };
+    state.screen="miniGame";
+    saveState();
+    renderPredictionGame();
+  }
+  function returnFromPredictionGame(){
+    clearPredictionCountdownTimer();
+    state.mini_game_round=null;
+    if(state.mode !== "research" || currentDay() >= 4){
+      saveState();
+      if(ensureLetterReturnSequence(currentDay())) return;
+      return renderGame("look");
+    }
+    if(currentDay() === 3 && state.letter_shown_at && !state.return_completed){
+      state.screen="letter";saveState();return renderLetter();
+    }
+    state.screen="game";saveState();
+    if(state.daily_care_ended_marker === currentLifeMarker()) return renderCareEndedDay(currentDay());
+    return renderGame("look");
+  }
+  function predictionRemainingMs(round){
+    const started = Number(round?.countdown_started_at || Date.now());
+    return Math.max(0, started + 3000 - Date.now());
+  }
+  function updatePredictionCountdown(){
+    const round=state.mini_game_round;
+    if(!round || round.answered || !predictionAllowed() || state.screen!=="miniGame"){
+      clearPredictionCountdownTimer();
+      return;
+    }
+    const remaining=predictionRemainingMs(round);
+    const counting=remaining>0;
+    // 3、2、1が終わったら数字を消し、その場所に二択だけを表示する。
+    // 「押す！」などの第3の選択肢に見える文字は表示しない。
+    const el=$("predictionCountdown");
+    if(el){
+      el.textContent=counting ? String(Math.ceil(remaining/1000)) : "";
+      el.classList.toggle("hidden",!counting);
+    }
+    const choices=$("predictionChoices");
+    if(choices) choices.classList.toggle("hidden",counting);
+    for(const id of ["predictMove","predictSleep"]){
+      const btn=$(id);
+      if(btn) btn.disabled=counting;
+    }
+    const hint=$("predictionCountdownHint");
+    if(hint) hint.classList.toggle("hidden",!counting);
+    if(!counting) clearPredictionCountdownTimer();
+  }
+  function renderPredictionGame(){
+    clearPredictionCountdownTimer();
+    if(!predictionAllowed()) return returnFromPredictionGame();
+    const round=state.mini_game_round;
+    if(!round || round.day !== currentDay()) return startPredictionGame();
+    // 旧バージョンの途中状態も安全に継続する。
+    if(!round.answered && !round.countdown_started_at){
+      round.countdown_started_at=Date.now();saveState();
+    }
+    // C2: 見た目は変更後、行動は元のまま。C3: 見た目は維持し行動だけ変更後。
+    // C1: state.pet_name が自動改名後の名前を保持。C4: 過去の記憶を語らない。
+    const c=currentCharacter();
+    const moveId=round.behavior_character_id || behaviorCharacterId();
+    const moveName=PREDICTION_MOVES[moveId]?.[L()] || PREDICTION_MOVES[moveId]?.ja || "move";
+    const isLetter=!!state.letter_shown_at && currentDay()===3;
+    const backKey=isLetter?"backLetter":state.daily_care_ended_marker===currentLifeMarker()?"backEnded":"back";
+    const match=predictionMatch();
+    // 研究2〜3日目は従来の呼び名を維持する。
+    // 研究4〜5日目はC1〜C4で共通の対戦表示にし、名前の違いが余分な手がかりにならないようにする。
+    // この変更はミニゲーム内の対戦・得点・勝敗・次の行動の問いかけだけに適用する。
+    const neutralNames = state.mode === "research" && currentDay() >= 4;
+    const playerDisplay = neutralNames ? predictionText("fallbackUser") : (playerCallName() || predictionText("fallbackUser"));
+    const petDisplay = neutralNames ? predictionText("fallbackPet") : (state.pet_name || predictionText("fallbackPet"));
+    let outcome="";
+    if(round.answered){
+      const predicted=round.predicted === round.character_choice;
+      const shown=round.character_choice === "sleep" ? predictionText("sleep") : moveName;
+      outcome=`<div class="prediction-result" role="status"><div style="font-size:20px;font-weight:900">${esc(predictionText("one"))}</div><div style="font-size:14px;font-weight:800">${esc(predictionFormat("picked",{pet:petDisplay}))}</div><div class="action">${round.character_choice==="sleep"?"💤":"✨"} ${esc(shown)}${L()==="ja"?"！":"!"}</div><div class="win">${predicted?"🎉":"🌟"} ${esc(predictionFormat(predicted?"won":"lost",{user:playerDisplay,pet:petDisplay}))}</div></div>`;
+    }
+    const actionClass=round.answered?(round.character_choice==="move"?"prediction-revealed-move":"prediction-revealed-sleep"):"";
+    // 動作のモーションも外見のIDではなく、その日有効な行動のIDに連動する。
+    const demoMotion = ["cat_purple","seal_gray"].includes(moveId)?"demo-spin":moveId==="lizard_green"?"demo-look":moveId==="penguin_yellow"?"demo-walk":"";
+    const userName=esc(playerDisplay);
+    const petName=esc(petDisplay);
+    const scoreHtml=`<div class="prediction-score"><span>${userName}<strong>${Number(match.player||0)} / 5</strong></span><span>⚔️ VS</span><span>${petName}<strong>${Number(match.pet||0)} / 5</strong></span></div>`;
+    const winnerName=match.player>=5?playerDisplay:petDisplay;
+    const matchEnd=match.finished ? `<div class="prediction-result" role="status"><div class="win">🏆 ${esc(predictionFormat("matchWinner",{winner:winnerName}))}</div><div>${esc(predictionText("matchEndRule"))}</div></div>` : "";
+    root.innerHTML=`<section class="card spaceCard center">
+      <h2>🎮 ${esc(predictionText("firstToFive"))} ${userName} VS ${petName}</h2>
+      <p class="small">${esc(predictionFormat("rule",{user:playerDisplay,pet:petDisplay}))}</p>
+      <div class="prediction-instruction">${round.answered?esc(predictionText("resultTitle")):`${esc(predictionFormat("choicePrompt",{pet:petDisplay}))}<br>${esc(predictionText("waitCount"))}`}</div>
+      <div class="stage prediction-stage ${actionClass} ${demoMotion}">${characterHtml(c,round.answered && round.character_choice==="sleep"?"sleep":"happy")}</div>
+      ${outcome}
+      ${matchEnd}
+      ${round.answered || match.finished ? "" : `<div class="predictionTimingArea">
+        <div class="predictionCountdown" id="predictionCountdown" aria-live="polite">3</div>
+        <div class="predictionCountdownHint" id="predictionCountdownHint">${esc(predictionText("countdownHint"))}</div>
+        <div class="row predictionChoices hidden" id="predictionChoices">
+          <button id="predictMove" type="button" disabled>✨ ${esc(moveName)}</button><button id="predictSleep" class="secondary" type="button" disabled>💤 ${esc(predictionText("sleep"))}</button>
+        </div>
+      </div>`}
+      ${scoreHtml}
+      <p class="small">${esc(predictionText("note"))}</p>
+      ${match.finished?`<button id="predictionRematch" class="wide" type="button">🔄 ${esc(predictionText("rematch"))}</button>`:round.answered?`<button id="predictionReplay" class="wide" type="button">${esc(predictionText("nextRound"))} →</button>`:""}
+      <button id="predictionBack" class="secondary wide" type="button" style="margin-top:12px">${esc(predictionText(backKey))}</button>
+    </section>`;
+    $("predictionBack").addEventListener("click",returnFromPredictionGame);
+    if(match.finished){
+      $("predictionRematch").addEventListener("click",replayPredictionMatch);
+    }else if(round.answered){
+      $("predictionReplay").addEventListener("click",startPredictionGame);
+    }else{
+      $("predictMove").addEventListener("click",()=>answerPredictionGame("move"));
+      $("predictSleep").addEventListener("click",()=>answerPredictionGame("sleep"));
+      updatePredictionCountdown();
+      if(predictionRemainingMs(round)>0){
+        predictionCountdownTimer=setInterval(updatePredictionCountdown,100);
+      }
+    }
+    scheduleLetterAfterDay3();
+  }
+  function answerPredictionGame(predicted){
+    if(!predictionAllowed()) return returnFromPredictionGame();
+    const round=state.mini_game_round;
+    if(!round || round.answered || round.day !== currentDay() || predictionRemainingMs(round)>0) return;
+    clearPredictionCountdownTimer();
+    round.predicted=predicted;round.answered=true;
+    const won=predicted === round.character_choice;
+    const stats=state.mini_game_stats = state.mini_game_stats || {played:0,wins:0,losses:0};
+    stats.played=Number(stats.played||0)+1;
+    stats[won?"wins":"losses"]=Number(stats[won?"wins":"losses"]||0)+1;
+    const match=predictionMatch();
+    match[won?"player":"pet"]+=1;
+    if(match.player>=5 || match.pet>=5){match.finished=true;match.winner=match.player>=5?"player":"pet";}
+    // 変化前の2・3日目の対戦だけ、別の集計に蓄積する。
+    // 4・5日目のゲームは過去の記憶を後から書き換えない。
+    hydratePrechangeMiniGameFromOlderLogs();
+    if(round.day === 2 || round.day === 3){
+      const pre=state.mini_game_prechange = state.mini_game_prechange ||
+        {played:0,player_wins:0,character_wins:0,player_matches:0,character_matches:0};
+      pre.played=Number(pre.played||0)+1;
+      pre[won?"player_wins":"character_wins"]=Number(pre[won?"player_wins":"character_wins"]||0)+1;
+      if(match.finished){
+        pre[match.winner==="player"?"player_matches":"character_matches"]=
+          Number(pre[match.winner==="player"?"player_matches":"character_matches"]||0)+1;
+      }
+    }
+    saveState();
+    logEvent("prediction_game_result",{day:round.day,character_id:round.character_id,
+      behavior_character_id:round.behavior_character_id || "",predicted,
+      character_choice:round.character_choice,won,mini_game_rounds:stats.played,
+      does_not_count_as_care:true,coin_reward:false,
+      player_score:match.player,pet_score:match.pet,match_finished:match.finished,match_winner:match.winner||""});
+    renderPredictionGame();
   }
 
   function renderIntro(){
@@ -3519,7 +3898,7 @@
      操作案内（ガイドチップ）
      ・研究モードのみ表示（つづきのお世話では出しません）
      ・全条件（C1〜C4）で同一の文言・同一のタイミング
-     ・相棒のセリフとは別枠なので、実験操作に影響しません
+     ・キャラクターのセリフとは別枠なので、実験操作に影響しません
      ・「OK」で閉じると、その案内は二度と表示されません
      =========================================================== */
   const GUIDE_TIPS = {
@@ -3530,8 +3909,8 @@
     },
     day1:{
       ja:"また明日も会いに来てくださいね。次の日は、生まれた時間から24時間後に始まります。ホーム画面のアイコンやブックマークから開くと、続きから始まります。",
-      en:"Please come back again tomorrow. The next day starts 24 hours after the companion was born. If you open the game from your home screen icon or a bookmark, it will continue where you left off.",
-      "zh-CN":"明天也请再来看看它。下一天会在小伙伴诞生24小时后开始。从主屏幕图标或书签打开时，会从上次的进度继续。"
+      en:"Please come back again tomorrow. The next day starts 24 hours after the character was born. If you open the game from your home screen icon or a bookmark, it will continue where you left off.",
+      "zh-CN":"明天也请再来看看它。下一天会在角色诞生24小时后开始。从主屏幕图标或书签打开时，会从上次的进度继续。"
     },
     day2:{
       ja:"今日も来てくれてありがとうございます。日数は、生まれた時間から24時間ごとに進みます。この調子で5日目まで続けてください。",
@@ -3539,9 +3918,9 @@
       "zh-CN":"谢谢你今天也来了。日数会从诞生时间起每24小时更新。请照这样继续到第5天。"
     },
     day5:{
-      ja:"今日が5日目です。相棒が生まれてから120時間が過ぎると、自動で最後のアンケート画面に進みます。",
-      en:"Today is Day 5. When 120 hours have passed since your companion was born, the final survey will open automatically.",
-      "zh-CN":"今天是第5天。小伙伴诞生满120小时后，会自动进入最后问卷。"
+      ja:"今日が5日目です。キャラクターが生まれてから120時間が過ぎると、自動で最後のアンケート画面に進みます。",
+      en:"Today is Day 5. When 120 hours have passed since your character was born, the final survey will open automatically.",
+      "zh-CN":"今天是第5天。角色诞生满120小时后，会自动进入最后问卷。"
     }
   };
   function guideTipText(tipId){
@@ -3716,16 +4095,16 @@
   // 次の段階でCloudflare WorkerのPush配信と接続します。
   // ===========================================================
   function notificationBody(){
-    const pet = String(state.pet_name || state.original_pet_name || (L()==="en" ? "Your companion" : L()==="zh-CN" ? "小伙伴" : "相棒")).trim();
+    const pet = String(state.pet_name || state.original_pet_name || (L()==="en" ? "Your character" : L()==="zh-CN" ? "角色" : "キャラクター")).trim();
     if(L() === "en") return `${pet} is waiting for you ❤️`;
     if(L() === "zh-CN") return `${pet}在等你哦❤️`;
     return `${pet}が待っているよ❤️`;
   }
 
   function notificationPermissionIntro(){
-    if(L() === "en") return "Would you like to receive one daily notification from your companion during the five-day study?";
-    if(L() === "zh-CN") return "在五天的研究期间，是否接收每天一次的小伙伴通知？";
-    return "5日間、相棒から1日1回のお知らせを受け取りますか？";
+    if(L() === "en") return "Would you like to receive one daily notification from your character during the five-day study?";
+    if(L() === "zh-CN") return "在五天的研究期间，是否接收每天一次的角色通知？";
+    return "5日間、キャラクターから1日1回のお知らせを受け取りますか？";
   }
 
   async function enableIdealPawNotifications(){
@@ -3792,7 +4171,7 @@
         <button id="startGameBtn" class="wide" type="button">${esc(t("confirmPetName"))}</button>
       </section>`;
     $("startGameBtn").addEventListener("click", () => {
-      const name = ($("petNameInput").value || "").trim() || (L()==="en" ? "Buddy" : L()==="zh-CN" ? "伙伴" : "相棒");
+      const name = ($("petNameInput").value || "").trim() || (L()==="en" ? "Buddy" : L()==="zh-CN" ? "角色" : "キャラクター");
       state.pet_name = name;
       state.original_pet_name = name;
       const nowIso = new Date().toISOString();
@@ -3837,7 +4216,7 @@
       const details = {condition_id:state.condition_id, day};
 
       if(state.condition_id === "C1"){
-        const oldName = state.original_pet_name || state.pet_name || (L()==="en" ? "Buddy" : L()==="zh-CN" ? "伙伴" : "相棒");
+        const oldName = state.original_pet_name || state.pet_name || (L()==="en" ? "Buddy" : L()==="zh-CN" ? "角色" : "キャラクター");
         const newName = state.c1_auto_name || chooseAutomaticC1Name(oldName);
         state.c1_auto_name = newName;
         state.pet_name = newName;
@@ -3856,6 +4235,7 @@
       if(state.condition_id === "C4"){
         state.memory_cues_enabled = false;
         state.display_character_id = state.original_character_id;
+        if(typeof state.c4_name_answered !== "boolean") state.c4_name_answered = false;
       }
       state.changed_applied = true;
       logEvent("condition_applied", details);
@@ -3953,10 +4333,10 @@
     const player = playerCallName() || (L()==="en" ? "you" : L()==="zh-CN" ? "你" : "あなた");
     const pet = transitionPetName();
     const tomorrowNotice = L()==="en"
-      ? `Your companion will return automatically after ${formatLocalDateTime(researchDayStartMs(4))}.`
+      ? `Day 4 will begin automatically after ${formatLocalDateTime(researchDayStartMs(4))}.`
       : L()==="zh-CN"
-        ? `小伙伴会在${formatLocalDateTime(researchDayStartMs(4))}以后自动回来。`
-        : `${formatLocalDateTime(researchDayStartMs(4))}以降に、相棒は自動で帰ってきます。`;
+        ? `第4天将在${formatLocalDateTime(researchDayStartMs(4))}以后自动开始。`
+        : `${formatLocalDateTime(researchDayStartMs(4))}以降に、4日目が自動で始まります。`;
 
     root.innerHTML = `
       <section class="card spaceCard transitionCard">
@@ -3971,9 +4351,11 @@
           </div>
         </div>
         <div class="notice small">${esc(tomorrowNotice)}</div>
+        ${predictionButtonHtml()}
       </section>`;
     state.screen = "letter";
     saveState();
+    bindPredictionButton();
     scheduleLetterAfterDay3();
     if(!researchHasEnded()) scheduleSurveyAfterDay5();
   }
@@ -4009,7 +4391,6 @@
       return renderLetter();
     }
 
-    const c = currentCharacter();
     const pet = transitionPetName();
     root.innerHTML = `
       <section class="card spaceCard transitionCard">
@@ -4019,7 +4400,7 @@
           <span class="revivalSpark s2">✧</span>
           <span class="revivalSpark s3">✦</span>
           <span class="revivalSpark s4">✧</span>
-          <div class="revivalPet">${characterHtml(c,"happy")}</div>
+          <div class="returnNeutralLight" aria-hidden="true"><span>✦</span></div>
           <div class="speech">${esc(transitionText("returnText", {pet}))}</div>
         </div>
         <div class="meter"><span id="revivalBar" style="width:0%"></span></div>
@@ -4070,9 +4451,9 @@
   }
 
   const IDLE_ACTIVITY_TEXT = {
-    playing:{ja:"相棒はひとりで楽しそうに遊んでいます。", en:"Your companion is happily playing on its own.", "zh-CN":"小伙伴正在开心地自己玩。"},
-    resting:{ja:"相棒はのんびり休んでいます。", en:"Your companion is resting quietly.", "zh-CN":"小伙伴正在悠闲地休息。"},
-    watching:{ja:"相棒はこちらを見ながら、静かに待っています。", en:"Your companion is quietly watching and waiting.", "zh-CN":"小伙伴正安静地看着这边等待。"}
+    playing:{ja:"キャラクターはひとりで楽しそうに遊んでいます。", en:"Your character is happily playing on its own.", "zh-CN":"角色正在开心地自己玩。"},
+    resting:{ja:"キャラクターはのんびり休んでいます。", en:"Your character is resting quietly.", "zh-CN":"角色正在悠闲地休息。"},
+    watching:{ja:"キャラクターはこちらを見ながら、静かに待っています。", en:"Your character is quietly watching and waiting.", "zh-CN":"角色正安静地看着这边等待。"}
   };
   const CARE_CUE_TEXT = {
     hungry:{ja:"{pet}はおなかがすいたみたい。ごはんの方を気にしています。", en:"{pet} seems hungry and keeps looking toward the food.", "zh-CN":"{pet}好像饿了，一直在看食物那边。"},
@@ -4115,9 +4496,9 @@
   function currentPetDisplayName(){
     const named = String(state.pet_name || "").trim();
     if(named) return named;
-    if(L() === "en") return "Companion";
-    if(L() === "zh-CN") return "小伙伴";
-    return "相棒";
+    if(L() === "en") return "Character";
+    if(L() === "zh-CN") return "角色";
+    return "キャラクター";
   }
   function petStateLabel(){
     const pet = currentPetDisplayName();
@@ -4239,8 +4620,10 @@
         <div class="stage">${characterHtml(c,"happy")}<div class="speech">${esc(line)}</div></div>
         <div class="dayEndedBox">${esc(t("pausedCloseNote"))}</div>
         <button id="resumePausedCareBtn" class="wide" type="button">${esc(t("pausedResume"))}</button>
+        ${predictionButtonHtml()}
       </section>`;
     $("resumePausedCareBtn").addEventListener("click", resumePausedCareSession);
+    bindPredictionButton();
     state.screen = "game";
     saveState();
     scheduleLetterAfterDay3();
@@ -4250,7 +4633,7 @@
   function showEndCareConfirm(){
     if(Number(state.daily_action_count || 0) < 1) return;
     // 「今日はここまで」という人工的な区切りは使わず、
-    // 「また明日ね」を選ぶと相棒が自然に眠る流れにします。
+    // 「また明日ね」を選ぶとキャラクターが自然に眠る流れにします。
     endDailyCareSession();
   }
   function endDailyCareSession(){
@@ -4293,13 +4676,13 @@
     }
 
     // 3日目だけは、通常の睡眠画面ではなく、ここで置き手紙を表示します。
-    // 4日目になるまでは相棒に会えず、4日目になると自動的に帰ってきます。
+    // 4日目になるまではキャラクターに会えず、4日目になると自動的に帰ってきます。
     if(state.mode === "research" && endedDay === 3){
       return showDay3DepartureLetter();
     }
 
     // 5日目は、お世話終了操作の直後に最後のアンケートへ進みます。
-    // 研究条件・相棒・ログ・保存キーなど、その他の仕様は変更しません。
+    // 研究条件・キャラクター・ログ・保存キーなど、その他の仕様は変更しません。
     if(state.mode === "research" && endedDay === 5){
       return openSurveyAfterDay5("after_day5_care_end");
     }
@@ -4325,10 +4708,12 @@
           <div class="idleActivityBadge">✦ ${esc(idleActivityText(activity))}</div>
         </div>
         <button id="startDailyCareBtn" class="wide" type="button">${esc(t("startCare"))}</button>
+        ${predictionButtonHtml()}
         ${gameGuideTipId(day) ? guideTipHtml(gameGuideTipId(day)) : ""}
       </section>`;
     bindGuideTips();
     $("startDailyCareBtn").addEventListener("click", startDailyCareSession);
+    bindPredictionButton();
     state.screen = "game";
     saveState();
     scheduleLetterAfterDay3();
@@ -4355,13 +4740,115 @@
           <div class="speech">${esc(t("dayEndedText"))}</div>
         </div>
         <div class="dayEndedBox">${esc(nextText)}</div>
+        ${predictionButtonHtml()}
         ${gameGuideTipId(day) ? guideTipHtml(gameGuideTipId(day)) : ""}
       </section>`;
     bindGuideTips();
+    bindPredictionButton();
     state.screen = "game";
     saveState();
     scheduleLetterAfterDay3();
     scheduleSurveyAfterDay5();
+  }
+
+  function hydratePrechangeMiniGameFromOlderLogs(){
+    if(state.mini_game_prechange_migrated) return;
+    const summary=state.mini_game_prechange=state.mini_game_prechange ||
+      {played:0,player_wins:0,character_wins:0,player_matches:0,character_matches:0};
+    // 新コードで既に数えている場合は過去分との重複を避ける。
+    if(Number(summary.played||0)>0){state.mini_game_prechange_migrated=true;return;}
+    try{
+      const history=getLocalLogs().filter(item=>item?.event_type==="prediction_game_result");
+      for(const item of history){
+        const data=JSON.parse(item.details_json||"{}");
+        if(Number(data.day||item.day)!==2 && Number(data.day||item.day)!==3) continue;
+        summary.played++;
+        summary[data.won===true?"player_wins":"character_wins"]++;
+        if(data.match_finished){
+          summary[data.match_winner==="player"?"player_matches":"character_matches"]++;
+        }
+      }
+    }catch(_e){}
+    state.mini_game_prechange_migrated=true;
+    saveState();
+  }
+
+  // 4日目に一度だけ、2・3日目の任意のゲーム体験に言及する。
+  // 記憶操作C4では絶対に提示しない。未参加者には対戦を捏造しない。
+  // この1回限りの手がかりは、研究の関与P/Sの確率設定から切り離して記録する。
+  const PREDICTION_MEMORY_LINES = {
+    ja:{more:"この前の予想ゲーム、{user}の方が強かったね。",less:"この前の予想ゲームは、{pet}の方が強かったね。",many:"この前は予想ゲームでたくさん遊んだね。",some:"この前、一緒に予想ゲームをしたね。"},
+    en:{more:"Last time, {user} did better than {pet} in the guessing game.",less:"Last time, {pet} did better in the guessing game.",many:"We played the guessing game a lot before.",some:"We played the guessing game together before."},
+    "zh-CN":{more:"之前玩猜一猜时，{user}比{pet}更厉害呢。",less:"之前玩猜一猜时，{pet}更厉害呢。",many:"之前我们玩了好多次猜一猜呢。",some:"之前我们一起玩过猜一猜呢。"}
+  };
+  function predictionMemoryLineDay4(action,day){
+    if(state.mode!=="research" || day!==4 || action!=="look" ||
+       !state.return_completed || !state.changed_applied || !state.memory_cues_enabled ||
+       state.condition_id==="C4" || state.mini_game_memory_cue_day4_shown) return "";
+    hydratePrechangeMiniGameFromOlderLogs();
+    const pre=state.mini_game_prechange;
+    if(!pre || Number(pre.played||0)===0) return "";
+    // "強かった" は5点先取の完了した対戦だけを根拠に判断する。
+    let kind;
+    if(Number(pre.player_matches||0)>Number(pre.character_matches||0)) kind="more";
+    else if(Number(pre.character_matches||0)>Number(pre.player_matches||0)) kind="less";
+    else kind=Number(pre.played||0)>=5?"many":"some";
+    state.mini_game_memory_cue_day4_shown=true;
+    saveState();
+    logEvent("prediction_memory_cue_shown", {day:4,kind,prechange_rounds:Number(pre.played||0),
+      player_matches:Number(pre.player_matches||0),character_matches:Number(pre.character_matches||0),
+      condition_id:state.condition_id});
+    const template=PREDICTION_MEMORY_LINES[L()]?.[kind] || PREDICTION_MEMORY_LINES.ja[kind];
+    return template.replaceAll("{user}",playerCallName() || predictionText("fallbackUser"))
+      .replaceAll("{pet}",currentPetDisplayName());
+  }
+
+  // C4の「今聞き直した名前」は過去を覚えている証拠にはしない。
+  // 名前の再確認は4日目以降に一度だけ。入力欄を設けず、新たな個人情報は収集しない。
+  const C4_NAME_TEXT = {
+    ja:{title:"あなたの名前は？",desc:"キャラクターは、あなたの呼び名をたずねています。",answer:"{user}と呼んで",skip:"答えたくない",after:"{user}、よろしくね。"},
+    en:{title:"What should I call you?",desc:"The character is asking what name to use for you.",answer:"Please call me {user}",skip:"I'd rather not say",after:"Nice to meet you, {user}."},
+    "zh-CN":{title:"你叫什么名字？",desc:"角色正在询问该怎样称呼你。",answer:"请叫我{user}",skip:"不想回答",after:"{user}，请多关照。"}
+  };
+  function c4NameText(key){ return C4_NAME_TEXT[L()]?.[key] || C4_NAME_TEXT.ja[key]; }
+  function c4NamePromptRequired(day){
+    return state.mode==="research" && state.condition_id==="C4" &&
+      day >= 4 && state.return_completed && state.changed_applied && !state.c4_name_answered;
+  }
+  function renderC4NameQuestion(){
+    const user = playerCallName() || predictionText("fallbackUser");
+    root.innerHTML = `<section class="card spaceCard center">
+      <h2>${esc(c4NameText("title"))}</h2>
+      <div class="stage">${characterHtml(currentCharacter(),"happy")}
+        <div class="speech">${esc(c4NameText("title"))}</div>
+      </div>
+      <p class="lead">${esc(c4NameText("desc"))}</p>
+      <div class="choiceGrid">
+        <button type="button" id="c4AnswerName">${esc(c4NameText("answer").replaceAll("{user}",user))}</button>
+        <button class="secondary" type="button" id="c4SkipName">${esc(c4NameText("skip"))}</button>
+      </div>
+    </section>`;
+    state.screen="game";
+    saveState();
+    function answer(given){
+      if(state.c4_name_answered) return;
+      state.c4_name_answered=true;
+      state.c4_name_given=given;
+      state.c4_name_cue_shown=false;
+      saveState();
+      logEvent("c4_name_reintroduced", {day:currentDay(),name_given:given,typed_name:false});
+      renderGame("look");
+    }
+    $("c4AnswerName").addEventListener("click",()=>answer(true));
+    $("c4SkipName").addEventListener("click",()=>answer(false));
+  }
+  // C4の通常反応に混ざっていた、過去の世話を覚えている発言だけを除く。
+  // それ以外のセリフと性格は維持し、C3の性格変更とは独立にする。
+  const C4_UNSAFE_MEMORY_LINE = /覚え(?:て|る)|記録、|\bremember\b|food record|我记得|记录，我记得/iu;
+  function safeRegularLinesForCondition(pool, day){
+    if(!(state.mode==="research" && state.condition_id==="C4" && day>=4)) return pool;
+    const clean=pool.filter(line=>!C4_UNSAFE_MEMORY_LINE.test(String(line)));
+    return clean.length?clean:pool.filter(line=>!/\{day\}/.test(String(line)));
   }
 
   function lineForPet(action="look", choice=""){
@@ -4377,13 +4864,23 @@
     const kind = actionKindForLine(action);
     const eng = engagementSettings();
 
-    // C4：記憶手がかり変更条件。見た目・言葉づかい・動きは同じでも、過去の記憶コメントだけ出さない。
+    // C4：聞き直した現在の呼び名だけを、必要に応じて一度呼ぶ。以前の記憶とは別。
     if(state.mode === "research" && state.condition_id === "C4" && day >= 4 && action === "look"){
+      if(state.c4_name_answered && state.c4_name_given && !state.c4_name_cue_shown){
+        state.c4_name_cue_shown=true;
+        saveState();
+        logEvent("c4_current_name_used", {day,name_got_from_day4:true});
+        return c4NameText("after").replaceAll("{user}",playerCallName() || predictionText("fallbackUser"));
+      }
       return pick(NO_MEMORY_LINES[L()] || NO_MEMORY_LINES.ja);
     }
 
+    // 4日目の最初の「様子を見る」でだけ、実際の2・3日目の対戦記憶を提示する。
+    const miniMemoryLine=predictionMemoryLineDay4(action,day);
+    if(miniMemoryLine) return miniMemoryLine;
+
     // ユーザーの「呼ばれたい名前」を呼ぶセリフ。
-    // 4日目以降にこれが出ると、相棒がプレイヤーを覚えている手がかりになる。
+    // 4日目以降にこれが出ると、キャラクターがプレイヤーを覚えている手がかりになる。
     // C4では memory_cues_enabled が false になるため、4日目以降は名前呼びも出ません。
     if(shouldUsePlayerNameCue(action, day, eng)){
       const nameLine = playerNameMemoryLine();
@@ -4397,7 +4894,7 @@
       if(memoryLine) return memoryLine;
     }
 
-    const pool = data[kind] || data.home || [];
+    const pool = safeRegularLinesForCondition(data[kind] || data.home || [], day);
     let baseLine = "";
     if(pool.length){
       baseLine = interpolateLine(pick(pool), { value: localizedChoiceLabel(choice), user: playerCallName() });
@@ -4428,6 +4925,7 @@
     syncLifeClock();
     ensureCareMeters();
     applyConditionIfNeeded(day);
+    if(c4NamePromptRequired(day)) return renderC4NameQuestion();
 
     const marker = currentLifeMarker();
     if(state.daily_care_ended_at && dayEndLockActive()) return renderCareEndedDay(day);
@@ -4467,6 +4965,7 @@
           <button id="cleanBtn" type="button">${esc(t("clean"))}</button>
           <button id="lookBtn" class="secondary" type="button">${esc(t("look"))}</button>
           ${state.mode === "free" ? `<button id="zukanOpenBtn" class="secondary" type="button">${esc(t("zukanOpen"))}</button>` : ""}
+          ${predictionAllowed() ? `<button id="predictionStartBtn" class="secondary fullAction" type="button">${esc(predictionText("go"))}</button>` : ""}
           <button id="pauseCareBtn" class="secondary fullAction" type="button">${esc(t("pauseCare"))}</button>
           <div class="endCareNote">${esc(t("pauseCareNote"))}</div>
           <button id="endCareBtn" class="secondary fullAction" type="button" ${canEndToday ? "" : "disabled"}>${esc(t("endCare"))}</button>
@@ -4501,6 +5000,7 @@
     $("petBtn").addEventListener("click", () => doAction("pet","touch"));
     $("cleanBtn").addEventListener("click", () => startCleanGame());
     $("lookBtn").addEventListener("click", () => doAction("look","status"));
+    bindPredictionButton();
     $("pauseCareBtn").addEventListener("click", pauseDailyCareSession);
     $("endCareBtn").addEventListener("click", showEndCareConfirm);
     if($("zukanOpenBtn")) $("zukanOpenBtn").addEventListener("click", () => setScreen("zukan"));
@@ -4781,136 +5281,36 @@
 
   const FINAL_SURVEY_I18N = {
     ja:{
-      title:"最後のアンケート",
-      lead:"5日間のお世話全体を振り返り、感じたことに近いものをそのまま答えてください。正解はありません。氏名・学校名・勤務先・連絡先など、個人が分かる情報は書かないでください。",
-      select:"選択してください",
-      required:"必須",
-      optional:"任意",
-      sectionA:"A．属性",
-      sectionB:"B．同一性判断",
-      sectionC:"C．同一性判断の理由",
-      sectionD:"D．変化への気づき",
-      sectionE:"E．同一性判断の手がかり",
-      sectionF:"F．愛着・関与",
-      sectionFLead:"5日間のお世話全体を振り返ってお答えください。",
-      age:"年齢：あなたの年齢を数字で入力してください。",
-      agePh:"例：25",
-      gender:"性別：あなたの性別を教えてください。",
-      genderOptions:{female:"女性",male:"男性",other:"その他",no_answer:"答えたくない"},
+      title:"最後のアンケート",lead:"5日間のお世話全体を振り返り、感じたことに近いものをそのまま答えてください。正解はありません。氏名・学校名・勤務先・連絡先など個人が分かる情報は書かないでください。",
+      select:"選択してください",sectionA:"A．あなたについて",sectionB:"B．キャラクターについて",sectionC:"C．そう感じた理由",sectionD:"D．変化について",sectionE:"E．判断の手がかり",sectionF:"F．キャラクターとの関わり",
+      sectionFLead:"5日間のお世話全体を振り返ってお答えください。",age:"年齢：あなたの年齢を数字で入力してください。",agePh:"例：25",gender:"性別：あなたの性別を教えてください。",genderOptions:{female:"女性",male:"男性",other:"その他",no_answer:"答えたくない"},
       q1:"Q1. 4日目・5日目のキャラクターは、1〜3日目にお世話していたキャラクターと同じ存在だと思いますか。",
-      q1sub:"Q1-補. 4日目以降、別のキャラクターに入れ替わったと感じましたか。",
-      q2:"Q2. Q1のように判断した理由を教えてください。",
-      q2Ph:"理由を自由に書いてください。個人が分かる情報は書かないでください。",
+      q1sub:"Q1-補. 4日目以降、別のキャラクターに入れ替わったと感じましたか。",replacedOptions:{yes:"はい",no:"いいえ"},
+      q2:"Q2. Q1のように判断した理由を教えてください。",q2Ph:"自由に書いてください。個人が分かる情報は書かないでください。",
       q3:"Q3. 1〜3日目のキャラクターと比べて、4日目・5日目のキャラクターに何か違いや変化を感じましたか。",
       q3Options:{clearly:"はっきり感じた",slightly:"少し感じた",neutral:"どちらともいえない",hardly:"あまり感じなかった",not_at_all:"まったく感じなかった"},
-      q4:"Q4. 何が変わったと感じましたか。（複数選択可）",
-      q4Options:{name:"名前",appearance:"見た目",personality:"反応や性格",memory:"これまでのことを覚えているかどうか",dont_know:"わからない",other:"その他"},
-      q4OtherPh:"その他の内容を入力してください。",
-      q5:"Q5. どのような違いや変化だったか、よければ教えてください。",
-      q5Ph:"任意で入力してください。個人が分かる情報は書かないでください。",
-      q6:"Q6. Q1の判断をするとき、何が手がかりになりましたか。（複数選択可）",
-      q6Options:{name:"名前",appearance:"見た目",personality:"反応や性格",memory:"キャラクターが、これまでのことを覚えているかどうか",care_experience:"自分がこれまでお世話してきた経験",intuitive:"なんとなく同じ／違うと感じた",none:"特に手がかりはなかった",other:"その他"},
-      q6OtherPh:"その他の手がかりを入力してください。",
-      q7:"Q7. Q6で選んだもののうち、最も重要だったものを1つ選んでください。",
-      q7Empty:"先にQ6で1つ以上選んでください。",
-      q8:"Q8. キャラクターに愛着を感じましたか。",
-      q9:"Q9. キャラクターを大事に感じましたか。",
-      q10:"Q10. お世話していない時間も、キャラクターのことが気になりましたか。",
+      q4:"Q4. 何が変わったと感じましたか。（複数選択可）",q4Options:{name:"名前",appearance:"見た目",personality:"反応や性格",memory:"キャラクターが、これまでのあなたとのやりとりを覚えているかどうか",not_noticed:"特に気づかなかった",dont_know:"わからない",other:"その他"},q4OtherPh:"その他の内容を入力してください。",
+      q5:"Q5. Q1の判断をするとき、最も重要だった手がかりを1つ選んでください。",q5Options:{name:"名前",appearance:"見た目",personality:"反応や性格",memory:"キャラクターが、これまでのあなたとのやりとりを覚えているかどうか",care_experience:"自分がこれまでお世話してきた経験",intuitive:"なんとなく同じ／違うと感じた",none:"特に手がかりはなかった",other:"その他"},q5OtherPh:"その他の手がかりを入力してください。",
+      q6:"Q6. キャラクターに愛着を感じましたか。",q7:"Q7. キャラクターを大事に感じましたか。",q8:"Q8. お世話していない時間も、キャラクターのことが気になりましたか。",
       scale:["1 まったくそう思わない","2 そう思わない","3 あまりそう思わない","4 どちらともいえない","5 ややそう思う","6 そう思う","7 とてもそう思う"],
-      submit:"回答を送信する",
-      missing:"未回答の必須項目があります。回答してから送信してください。",
-      ageError:"年齢は18〜120の数字で入力してください。",
-      q4Error:"Q4を1つ以上選んでください。",
-      q6Error:"Q6を1つ以上選んでください。",
-      q7Error:"Q7を選んでください。"
+      submit:"回答を送信する",missing:"必須項目に未回答があります。",ageError:"年齢は18〜120の数字で入力してください。",q4Error:"Q4を1つ以上選んでください。"
     },
     en:{
-      title:"Final survey",
-      lead:"Please look back on the five days of care and answer according to what you actually felt. There are no right or wrong answers. Do not enter identifying information such as your name, school, workplace, or contact details.",
-      select:"Please choose",
-      required:"Required",
-      optional:"Optional",
-      sectionA:"A. About you",
-      sectionB:"B. Identity judgment",
-      sectionC:"C. Reason for the identity judgment",
-      sectionD:"D. Awareness of change",
-      sectionE:"E. Cues used for the identity judgment",
-      sectionF:"F. Attachment and engagement",
-      sectionFLead:"Please answer while looking back on the full five days of care.",
-      age:"Age: Please enter your age as a number.",
-      agePh:"e.g., 25",
-      gender:"Gender: Please tell us your gender.",
-      genderOptions:{female:"Female",male:"Male",other:"Other",no_answer:"Prefer not to answer"},
-      q1:"Q1. Do you think the character on Days 4 and 5 was the same being as the character you cared for on Days 1–3?",
-      q1sub:"Q1-Supplement. From Day 4 onward, did you feel that the character had been replaced by a different character?",
-      q2:"Q2. Please tell us why you made the judgment you gave in Q1.",
-      q2Ph:"Please write your reason. Do not include identifying information.",
-      q3:"Q3. Compared with the character on Days 1–3, did you notice any difference or change in the character on Days 4 and 5?",
-      q3Options:{clearly:"I clearly noticed a change",slightly:"I noticed a slight change",neutral:"Neither / not sure",hardly:"I hardly noticed a change",not_at_all:"I did not notice any change at all"},
-      q4:"Q4. What did you feel had changed? (Select all that apply.)",
-      q4Options:{name:"Name",appearance:"Appearance",personality:"Responses or personality",memory:"Whether the character remembered what had happened before",dont_know:"I don't know",other:"Other"},
-      q4OtherPh:"Please describe the other change.",
-      q5:"Q5. If you would like, please describe what kind of difference or change you noticed.",
-      q5Ph:"Optional. Do not include identifying information.",
-      q6:"Q6. When making your judgment in Q1, what did you use as cues? (Select all that apply.)",
-      q6Options:{name:"Name",appearance:"Appearance",personality:"Responses or personality",memory:"Whether the character remembered what had happened before",care_experience:"My experience of caring for the character up to that point",intuitive:"I simply felt that it was the same / different",none:"I did not use any particular cue",other:"Other"},
-      q6OtherPh:"Please describe the other cue.",
-      q7:"Q7. Of the items you selected in Q6, choose the single most important one.",
-      q7Empty:"First select at least one item in Q6.",
-      q8:"Q8. Did you feel attached to the character?",
-      q9:"Q9. Did you feel that the character was important to you?",
-      q10:"Q10. Did you think about the character even when you were not caring for it?",
-      scale:["1 Strongly disagree","2 Disagree","3 Somewhat disagree","4 Neither agree nor disagree","5 Somewhat agree","6 Agree","7 Strongly agree"],
-      submit:"Submit answers",
-      missing:"Some required items are unanswered. Please complete them before submitting.",
-      ageError:"Please enter an age from 18 to 120.",
-      q4Error:"Please select at least one answer for Q4.",
-      q6Error:"Please select at least one answer for Q6.",
-      q7Error:"Please select an answer for Q7."
+      title:"Final survey",lead:"Reflect on all five days of care and answer as you actually felt. There are no right or wrong answers. Do not enter identifying information.",select:"Please choose",sectionA:"A. About you",sectionB:"B. About the character",sectionC:"C. Why you felt that way",sectionD:"D. Changes",sectionE:"E. Identity cues",sectionF:"F. Your relationship with the character",sectionFLead:"Please think back over all five days of care.",
+      age:"Age: Enter your age as a number.",agePh:"e.g., 25",gender:"Gender: What is your gender?",genderOptions:{female:"Female",male:"Male",other:"Other",no_answer:"Prefer not to answer"},
+      q1:"Q1. Do you think the character on Days 4–5 was the same being as the character you cared for on Days 1–3?",q1sub:"Q1 Supplement. From Day 4 onward, did you feel the character had been replaced by another character?",replacedOptions:{yes:"Yes",no:"No"},
+      q2:"Q2. Why did you make that judgment in Q1?",q2Ph:"Write your reason without identifying information.",q3:"Q3. Compared with Days 1–3, did you notice any differences or changes in the character on Days 4–5?",q3Options:{clearly:"Clearly",slightly:"Slightly",neutral:"Neither / not sure",hardly:"Hardly",not_at_all:"Not at all"},
+      q4:"Q4. What did you feel had changed? (Select all that apply.)",q4Options:{name:"Name",appearance:"Appearance",personality:"Responses or personality",memory:"Whether the character remembered your previous interactions",not_noticed:"I did not notice anything in particular",dont_know:"I don't know",other:"Other"},q4OtherPh:"Describe the other change.",
+      q5:"Q5. Which ONE cue was most important when you answered Q1?",q5Options:{name:"Name",appearance:"Appearance",personality:"Responses or personality",memory:"Whether the character remembered your previous interactions",care_experience:"My previous experience of caring for the character",intuitive:"I simply felt it was the same / different",none:"I used no particular cue",other:"Other"},q5OtherPh:"Describe the other cue.",
+      q6:"Q6. Did you feel attached to the character?",q7:"Q7. Did you feel the character was important to you?",q8:"Q8. Did you think about the character even when you were not caring for it?",scale:["1 Strongly disagree","2 Disagree","3 Somewhat disagree","4 Neither agree nor disagree","5 Somewhat agree","6 Agree","7 Strongly agree"],submit:"Submit answers",missing:"Please complete all required questions.",ageError:"Enter an age from 18 to 120.",q4Error:"Select at least one answer for Q4."
     },
     "zh-CN":{
-      title:"最后问卷",
-      lead:"请回顾五天的照护过程，并按照你实际的感受回答。没有正确或错误的答案。请不要填写姓名、学校名、工作单位、联系方式等可识别个人的信息。",
-      select:"请选择",
-      required:"必答",
-      optional:"选答",
-      sectionA:"A．基本信息",
-      sectionB:"B．同一性判断",
-      sectionC:"C．同一性判断的理由",
-      sectionD:"D．对变化的察觉",
-      sectionE:"E．同一性判断的线索",
-      sectionF:"F．依恋与投入",
-      sectionFLead:"请回顾五天的全部照护经历后回答。",
-      age:"年龄：请用数字填写你的年龄。",
-      agePh:"例如：25",
-      gender:"性别：请选择你的性别。",
-      genderOptions:{female:"女性",male:"男性",other:"其他",no_answer:"不想回答"},
-      q1:"Q1. 你认为第4天和第5天的角色，与第1～3天你照护的角色是同一个存在吗？",
-      q1sub:"Q1-补充（选答）. 从第4天开始，你是否觉得角色被换成了另一个角色？",
-      q2:"Q2. 请说明你为什么会像Q1那样判断。",
-      q2Ph:"请自由填写理由。不要填写可识别个人的信息。",
-      q3:"Q3. 与第1～3天的角色相比，你是否感觉第4天和第5天的角色有任何不同或变化？",
-      q3Options:{clearly:"明显感觉到了",slightly:"稍微感觉到了",neutral:"说不清",hardly:"不太感觉得到",not_at_all:"完全没有感觉到"},
-      q4:"Q4. 你觉得哪些方面发生了变化？（可多选）",
-      q4Options:{name:"名字",appearance:"外观",personality:"反应或性格",memory:"是否记得以前发生过的事情",dont_know:"不知道",other:"其他"},
-      q4OtherPh:"请填写其他变化。",
-      q5:"Q5. 如果愿意，请描述你感觉到的是怎样的不同或变化。",
-      q5Ph:"选答。不要填写可识别个人的信息。",
-      q6:"Q6. 在做出Q1的判断时，你参考了哪些线索？（可多选）",
-      q6Options:{name:"名字",appearance:"外观",personality:"反应或性格",memory:"角色是否记得以前发生过的事情",care_experience:"自己一直以来照护这个角色的经历",intuitive:"只是直觉上觉得相同／不同",none:"没有特别的线索",other:"其他"},
-      q6OtherPh:"请填写其他线索。",
-      q7:"Q7. 请从你在Q6中选择的项目里，选出最重要的一项。",
-      q7Empty:"请先在Q6中至少选择一项。",
-      q8:"Q8. 你对这个角色产生了依恋吗？",
-      q9:"Q9. 你觉得这个角色对你来说很重要吗？",
-      q10:"Q10. 在没有照护角色的时候，你也会想起或在意它吗？",
-      scale:["1 完全不同意","2 不同意","3 不太同意","4 说不清","5 稍微同意","6 同意","7 非常同意"],
-      submit:"提交回答",
-      missing:"还有必答项目未完成。请回答后再提交。",
-      ageError:"请输入18～120之间的年龄数字。",
-      q4Error:"请至少选择一项Q4。",
-      q6Error:"请至少选择一项Q6。",
-      q7Error:"请选择Q7。"
+      title:"最后问卷",lead:"请回顾五天的照护经历，根据你的实际感受作答。没有标准答案。请勿填写能够识别个人身份的信息。",select:"请选择",sectionA:"A．关于你",sectionB:"B．关于角色",sectionC:"C．判断理由",sectionD:"D．关于变化",sectionE:"E．判断依据",sectionF:"F．与角色的关系",sectionFLead:"请回顾五天的全部照护经历后回答。",age:"年龄：请填写数字。",agePh:"例如：25",gender:"性别：你的性别是？",genderOptions:{female:"女性",male:"男性",other:"其他",no_answer:"不愿回答"},
+      q1:"Q1. 你认为第4～5天的角色，与第1～3天你照护的角色是同一个存在吗？",q1sub:"Q1补充. 从第4天开始，你是否觉得角色被替换成了另一个角色？",replacedOptions:{yes:"是",no:"否"},
+      q2:"Q2. 请说明你作出Q1判断的原因。",q2Ph:"请填写原因，不要提供可识别个人的信息。",q3:"Q3. 与第1～3天相比，你是否察觉到第4～5天的角色有不同或变化？",q3Options:{clearly:"明显察觉到",slightly:"稍微察觉到",neutral:"说不清",hardly:"不太察觉到",not_at_all:"完全没有察觉到"},
+      q4:"Q4. 你觉得哪些方面发生了变化？（可多选）",q4Options:{name:"名字",appearance:"外观",personality:"反应或性格",memory:"角色是否记得以前与你互动的经历",not_noticed:"没有特别注意到",dont_know:"不知道",other:"其他"},q4OtherPh:"请描述其他变化。",
+      q5:"Q5. 在作出Q1判断时，最重要的一个依据是什么？",q5Options:{name:"名字",appearance:"外观",personality:"反应或性格",memory:"角色是否记得以前与你互动的经历",care_experience:"自己至今照护角色的经历",intuitive:"只是直觉上觉得相同或不同",none:"没有特别的判断依据",other:"其他"},q5OtherPh:"请填写其他依据。",
+      q6:"Q6. 你对这个角色产生了依恋吗？",q7:"Q7. 你觉得这个角色对你来说很重要吗？",q8:"Q8. 不照护角色的时候，你也会想到或在意它吗？",scale:["1 完全不同意","2 不同意","3 不太同意","4 说不清","5 比较同意","6 同意","7 非常同意"],submit:"提交回答",missing:"有必答题尚未回答。",ageError:"请输入18～120之间的年龄。",q4Error:"请至少选择一项Q4。"
     }
   };
 
@@ -4979,235 +5379,180 @@
 
   function renderSurvey(){
     if(state.mode === "research" && !researchFiveDayCareComplete()){
-      const missing = [1,2,3,4,5].filter(day => !researchDayHasSubstantiveCare(day));
-      markResearchIncomplete("survey_guard_incomplete_five_day_care", missing);
+      const missing=[1,2,3,4,5].filter(day=>!researchDayHasSubstantiveCare(day));
+      markResearchIncomplete("survey_guard_incomplete_five_day_care",missing);
       return renderResearchIncomplete();
     }
-
-    const st = surveyText();
-    root.innerHTML = `
-      <section class="card surveyCard">
-        <h2>${esc(st.title)}</h2>
-        <p class="small">${esc(st.lead)}</p>
-
-        <h3>${esc(st.sectionA)}</h3>
-        <label for="surveyAge">${esc(st.age)}</label>
-        <input id="surveyAge" type="number" inputmode="numeric" min="18" max="120" step="1" placeholder="${esc(st.agePh)}" required>
-
-        <label for="surveyGender">${esc(st.gender)}</label>
-        <select id="surveyGender" required>
-          <option value="">${esc(st.select)}</option>
-          ${Object.entries(st.genderOptions).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}
-        </select>
-
-        <h3 style="margin-top:22px">${esc(st.sectionB)}</h3>
-        ${renderLikertSelect("q1Identity", st.q1)}
-        ${renderLikertSelect("q1Replaced", st.q1sub, true)}
-
-        <h3 style="margin-top:22px">${esc(st.sectionC)}</h3>
-        <label for="q2Reason">${esc(st.q2)}</label>
-        <textarea id="q2Reason" maxlength="1200" placeholder="${esc(st.q2Ph)}" required></textarea>
-
-        <h3 style="margin-top:22px">${esc(st.sectionD)}</h3>
-        <label for="q3ChangeAwareness">${esc(st.q3)}</label>
-        <select id="q3ChangeAwareness" required>
-          <option value="">${esc(st.select)}</option>
-          ${Object.entries(st.q3Options).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}
-        </select>
-
-        <label>${esc(st.q4)}</label>
-        ${renderCheckboxGroup("q4_changes", st.q4Options)}
-        <input id="q4Other" class="hidden" type="text" maxlength="300" placeholder="${esc(st.q4OtherPh)}">
-
-        <label for="q5ChangeDescription">${esc(st.q5)} <span class="small">（${esc(st.optional)}）</span></label>
-        <textarea id="q5ChangeDescription" maxlength="1200" placeholder="${esc(st.q5Ph)}"></textarea>
-
-        <h3 style="margin-top:22px">${esc(st.sectionE)}</h3>
-        <label>${esc(st.q6)}</label>
-        ${renderCheckboxGroup("q6_clues", st.q6Options)}
-        <input id="q6Other" class="hidden" type="text" maxlength="300" placeholder="${esc(st.q6OtherPh)}">
-
-        <label for="q7MostImportant">${esc(st.q7)}</label>
-        <select id="q7MostImportant" required disabled>
-          <option value="">${esc(st.q7Empty)}</option>
-        </select>
-
-        <h3 style="margin-top:22px">${esc(st.sectionF)}</h3>
-        <p class="small">${esc(st.sectionFLead)}</p>
-        ${renderLikertSelect("q8Attachment", st.q8)}
-        ${renderLikertSelect("q9Importance", st.q9)}
-        ${renderLikertSelect("q10Concern", st.q10)}
-
-        <button id="submitSurveyBtn" class="wide" type="button" style="margin-top:18px">${esc(st.submit)}</button>
-      </section>`;
-
-    bindExclusiveCheckbox("q4_changes", "dont_know");
-    bindExclusiveCheckbox("q6_clues", "none");
-    updateOtherField("q4_changes", "q4Other");
-    updateOtherField("q6_clues", "q6Other");
-    document.querySelectorAll('input[name="q6_clues"]').forEach(x => x.addEventListener("change", updateQ7Options));
-    updateQ7Options();
-    $("submitSurveyBtn").addEventListener("click", submitSurvey);
+    const st=surveyText();
+    root.innerHTML=`<section class="card surveyCard">
+      <h2>${esc(st.title)}</h2><p class="small">${esc(st.lead)}</p>
+      <h3>${esc(st.sectionA)}</h3>
+      <label for="surveyAge">${esc(st.age)}</label><input id="surveyAge" type="number" inputmode="numeric" min="18" max="120" step="1" placeholder="${esc(st.agePh)}" required>
+      <label for="surveyGender">${esc(st.gender)}</label><select id="surveyGender" required><option value="">${esc(st.select)}</option>${Object.entries(st.genderOptions).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}</select>
+      <h3 style="margin-top:22px">${esc(st.sectionB)}</h3>
+      ${renderLikertSelect("q1Identity",st.q1)}
+      <label for="q1Replaced">${esc(st.q1sub)}</label><select id="q1Replaced" required><option value="">${esc(st.select)}</option>${Object.entries(st.replacedOptions).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}</select>
+      <h3 style="margin-top:22px">${esc(st.sectionC)}</h3>
+      <label for="q2Reason">${esc(st.q2)}</label><textarea id="q2Reason" maxlength="1200" placeholder="${esc(st.q2Ph)}" required></textarea>
+      <h3 style="margin-top:22px">${esc(st.sectionD)}</h3>
+      <label for="q3ChangeAwareness">${esc(st.q3)}</label><select id="q3ChangeAwareness" required><option value="">${esc(st.select)}</option>${Object.entries(st.q3Options).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}</select>
+      <label>${esc(st.q4)}</label>${renderCheckboxGroup("q4_changes",st.q4Options)}
+      <input id="q4Other" class="hidden" type="text" maxlength="300" placeholder="${esc(st.q4OtherPh)}">
+      <h3 style="margin-top:22px">${esc(st.sectionE)}</h3>
+      <label for="q5MostImportant">${esc(st.q5)}</label><select id="q5MostImportant" required><option value="">${esc(st.select)}</option>${Object.entries(st.q5Options).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}</select>
+      <input id="q5Other" class="hidden" type="text" maxlength="300" placeholder="${esc(st.q5OtherPh)}">
+      <h3 style="margin-top:22px">${esc(st.sectionF)}</h3><p class="small">${esc(st.sectionFLead)}</p>
+      ${renderLikertSelect("q6Attachment",st.q6)}
+      ${renderLikertSelect("q7Importance",st.q7)}
+      ${renderLikertSelect("q8Concern",st.q8)}
+      <button id="submitSurveyBtn" class="wide" type="button" style="margin-top:18px">${esc(st.submit)}</button>
+    </section>`;
+    // 「気づかなかった」「わからない」は他の変化との同時選択を防ぐ。
+    const exclusive=new Set(["not_noticed","dont_know"]);
+    document.querySelectorAll('input[name="q4_changes"]').forEach(box=>box.addEventListener("change",()=>{
+      if(box.checked){
+        document.querySelectorAll('input[name="q4_changes"]').forEach(other=>{
+          if(other===box) return;
+          if(exclusive.has(box.value) || exclusive.has(other.value)) other.checked=false;
+        });
+      }
+      updateQ4Other();
+    }));
+    const updateQ4Other=()=>{
+      const selected=checkedValues("q4_changes").includes("other");
+      $("q4Other").classList.toggle("hidden",!selected);
+      if(!selected) $("q4Other").value="";
+    };
+    updateQ4Other();
+    $("q5MostImportant").addEventListener("change",()=>{
+      const selected=$("q5MostImportant").value==="other";
+      $("q5Other").classList.toggle("hidden",!selected);
+      if(!selected) $("q5Other").value="";
+    });
+    $("submitSurveyBtn").addEventListener("click",submitSurvey);
   }
 
-  function deriveSurveyReasons(q6Clues){
-    const reasons = [];
-    if(q6Clues.includes("name")) reasons.push("name");
-    if(q6Clues.includes("appearance")) reasons.push("look");
-    if(q6Clues.includes("personality")) reasons.push("personality");
-    if(q6Clues.includes("memory") || q6Clues.includes("care_experience")) reasons.push("memory");
-    if(q6Clues.includes("intuitive")) reasons.push("feeling");
-    return reasons;
-  }
-
-  function calculateFinalIdentityPercent(q1Identity, q1Replaced){
-    const main = Number(q1Identity || 4);
-    if(q1Replaced){
-      const reverse = 8 - Number(q1Replaced);
-      return clamp(Math.round((((main + reverse) / 2) - 1) / 6 * 100), 0, 100);
-    }
-    return clamp(Math.round((main - 1) / 6 * 100), 0, 100);
+  function deriveSurveyReasonsFromKey(key){
+    if(key==="appearance") return ["look"];
+    if(key==="care_experience" || key==="memory") return ["memory"];
+    if(key==="intuitive") return ["feeling"];
+    return [key].filter(Boolean);
   }
 
   function validateSurvey(){
-    const st = surveyText();
-    const age = Number($("surveyAge")?.value || 0);
-    if(!Number.isInteger(age) || age < 18 || age > 120){ alert(st.ageError); return false; }
-    if(!$("surveyGender")?.value || !$("q1Identity")?.value || !$("q2Reason")?.value.trim() || !$("q3ChangeAwareness")?.value || !$("q8Attachment")?.value || !$("q9Importance")?.value || !$("q10Concern")?.value){
-      alert(st.missing); return false;
-    }
-    const q4 = checkedValues("q4_changes");
-    if(!q4.length){ alert(st.q4Error); return false; }
-    const q6 = checkedValues("q6_clues");
-    if(!q6.length){ alert(st.q6Error); return false; }
-    if(!$("q7MostImportant")?.value){ alert(st.q7Error); return false; }
+    const st=surveyText();
+    const age=Number($("surveyAge")?.value||0);
+    if(!Number.isInteger(age)||age<18||age>120){alert(st.ageError);return false;}
+    if(!$("surveyGender")?.value || !$("q1Identity")?.value || !$("q1Replaced")?.value ||
+       !$("q2Reason")?.value.trim() || !$("q3ChangeAwareness")?.value ||
+       !$("q5MostImportant")?.value || !$("q6Attachment")?.value ||
+       !$("q7Importance")?.value || !$("q8Concern")?.value){alert(st.missing);return false;}
+    if(!checkedValues("q4_changes").length){alert(st.q4Error);return false;}
     return true;
   }
 
   function submitSurvey(){
     if(!researchFiveDayCareComplete()){
-      const missing = [1,2,3,4,5].filter(day => !researchDayHasSubstantiveCare(day));
-      markResearchIncomplete("survey_submit_guard_incomplete_five_day_care", missing);
+      const missing=[1,2,3,4,5].filter(day=>!researchDayHasSubstantiveCare(day));
+      markResearchIncomplete("survey_submit_guard_incomplete_five_day_care",missing);
       return renderResearchIncomplete();
     }
     if(!validateSurvey()) return;
-
-    const q4Changes = checkedValues("q4_changes");
-    const q6Clues = checkedValues("q6_clues");
-    const q1Identity = Number($("q1Identity").value);
-    const q1Replaced = $("q1Replaced").value ? Number($("q1Replaced").value) : null;
-    const q8Attachment = Number($("q8Attachment").value);
-    const q9Importance = Number($("q9Importance").value);
-    const q10Concern = Number($("q10Concern").value);
-    const reasons = deriveSurveyReasons(q6Clues);
-
-    state.survey = {
-      survey_version:"2026-10-04_revised_final",
-      age:Number($("surveyAge").value),
-      gender:$("surveyGender").value,
-      q1_identity:q1Identity,
-      q1_replaced_optional:q1Replaced,
-      q2_reason:$("q2Reason").value.trim(),
-      q3_change_awareness:$("q3ChangeAwareness").value,
-      q4_changed_aspects:q4Changes,
-      q4_other:q4Changes.includes("other") ? $("q4Other").value.trim() : "",
-      q5_change_description_optional:$("q5ChangeDescription").value.trim(),
-      q6_identity_clues:q6Clues,
-      q6_other:q6Clues.includes("other") ? $("q6Other").value.trim() : "",
-      q7_most_important_clue:$("q7MostImportant").value,
-      q8_attachment:q8Attachment,
-      q9_importance:q9Importance,
-      q10_concern:q10Concern,
-      likert_scale:7,
-
-      // 既存の相棒カード判定との互換性を保つための別名フィールド
-      identity_score:q1Identity,
-      attachment_score:q8Attachment,
-      concern_score:q10Concern,
-      noticed_change:$("q3ChangeAwareness").value,
-      noticed_parts:q4Changes,
-      reasons,
-      free_text:$("q2Reason").value.trim(),
-      identity_continuity_percent:calculateFinalIdentityPercent(q1Identity, q1Replaced)
+    const q1Identity=Number($("q1Identity").value);
+    const q1Replaced=$("q1Replaced").value; // "yes" or "no", not a Likert score
+    const q4Changes=checkedValues("q4_changes");
+    const q5Clue=$("q5MostImportant").value;
+    const attachment=Number($("q6Attachment").value);
+    const importance=Number($("q7Importance").value);
+    const concern=Number($("q8Concern").value);
+    state.survey={
+      survey_version:"2026-10-11_docx_Q1toQ8",
+      age:Number($("surveyAge").value),gender:$("surveyGender").value,
+      q1_identity:q1Identity,q1_replaced_yesno:q1Replaced,
+      q2_reason:$("q2Reason").value.trim(),q3_change_awareness:$("q3ChangeAwareness").value,
+      q4_changed_aspects:q4Changes,q4_other:q4Changes.includes("other")?$("q4Other").value.trim():"",
+      q5_most_important_clue:q5Clue,q5_other:q5Clue==="other"?$("q5Other").value.trim():"",
+      q6_attachment:attachment,q7_importance:importance,q8_concern:concern,likert_scale:7,
+      // Legacy calculation fields preserved for the participant card only.
+      identity_score:q1Identity,attachment_score:attachment,concern_score:concern,
+      noticed_change:$("q3ChangeAwareness").value,noticed_parts:q4Changes,
+      reasons:deriveSurveyReasonsFromKey(q5Clue),free_text:$("q2Reason").value.trim(),
+      identity_continuity_percent:clamp(Math.round((q1Identity-1)/6*100),0,100)
     };
-
-    state.completed_survey = true;
-    state.research_completion_status = "survey_complete";
-    state.research_completed_at = state.research_completed_at || new Date().toISOString();
-    state.reward_eligible = true;
-    state.screen = "result";
+    state.completed_survey=true;
+    state.research_completion_status="survey_complete";
+    state.research_completed_at=state.research_completed_at||new Date().toISOString();
+    state.reward_eligible=true;
+    state.screen="result";
     saveState();
-    logEvent("survey_submit", {
-      survey: state.survey,
-      logs: state.logs,
+    logEvent("survey_submit",{
+      survey:state.survey,logs:state.logs,
       research_day_care:{...ensureResearchDayCareTracking()},
-      five_day_care_complete:true,
-      reward_eligible:true,
-      care_meters_total:{...state.care_meters_total},
-      full_meter_count:state.full_meter_count,
-      source:"embedded_final_survey_2026-10-04_revised"
+      five_day_care_complete:true,reward_eligible:true,
+      care_meters_total:{...state.care_meters_total},full_meter_count:state.full_meter_count,
+      source:"embedded_final_survey_2026-10-11_docx"
     });
     renderResult();
   }
 
   const PET_ZUKAN_CARDS = [
-    {no:1, label:{ja:"メダカ",en:"Medaka fish","zh-CN":"青鳉鱼"}, type:{ja:"静かに見守る"}, message:{ja:"小さな変化を毎日そっと見守る相棒です。派手な反応は少なくても、続けて見るほど愛着が育ちます。"}, file:"01_medaka.png"},
-    {no:2, label:{ja:"金魚",en:"Goldfish","zh-CN":"金鱼"}, type:{ja:"静かに見守る"}, message:{ja:"ゆったり泳ぐ姿に癒される相棒です。落ち着いて関わりたい人に合いそうです。"}, file:"02_kingyo.png"},
-    {no:3, label:{ja:"ベタ",en:"Betta","zh-CN":"斗鱼"}, type:{ja:"静かに見守る"}, message:{ja:"静かな時間の中に小さな華やかさをくれる相棒です。ひとりの時間も大切にしながら関係を育てたい人に合いそうです。"}, file:"03_beta.png"},
-    {no:4, label:{ja:"グッピー",en:"Guppy","zh-CN":"孔雀鱼"}, type:{ja:"変化を楽しむ"}, message:{ja:"小さな動きや変化を楽しませてくれる相棒です。毎日の違いを見つけるのが好きな人に合いそうです。"}, file:"04_guppy.png"},
-    {no:5, label:{ja:"ミナミヌマエビ",en:"Freshwater shrimp","zh-CN":"淡水虾"}, type:{ja:"観察する"}, message:{ja:"細かな動きに気づく楽しさがある相棒です。小さな変化をじっくり見る人に合いそうです。"}, file:"05_minami_numaebi.png"},
-    {no:6, label:{ja:"カタツムリ",en:"Snail","zh-CN":"蜗牛"}, type:{ja:"ゆっくり寄りそう"}, message:{ja:"急がない時間をくれる相棒です。相手のペースを待ちながら関係を育てたい人に合いそうです。"}, file:"06_katatsumuri.png"},
-    {no:7, label:{ja:"オカヤドカリ",en:"Hermit crab","zh-CN":"寄居蟹"}, type:{ja:"小さな冒険"}, message:{ja:"小さな世界を探検する姿が楽しい相棒です。少しずつ新しい場所へ進みたい人に合いそうです。"}, file:"07_okayadokari.png"},
-    {no:8, label:{ja:"カブトムシ",en:"Rhinoceros beetle","zh-CN":"独角仙"}, type:{ja:"季節を楽しむ"}, message:{ja:"夏の元気を感じさせてくれる相棒です。短い時間でも濃く関わることを楽しめる人に合いそうです。"}, file:"08_kabutomushi.png"},
-    {no:9, label:{ja:"クワガタ",en:"Stag beetle","zh-CN":"锹形虫"}, type:{ja:"じっくり観察"}, message:{ja:"静かな強さを感じる相棒です。すぐに近づきすぎず、じっくり様子を見たい人に合いそうです。"}, file:"09_kuwagata.png"},
-    {no:10, label:{ja:"鈴虫",en:"Bell cricket","zh-CN":"铃虫"}, type:{ja:"音で寄りそう"}, message:{ja:"夜の時間を少し豊かにしてくれる相棒です。姿だけでなく、気配や雰囲気を大切にする人に合いそうです。"}, file:"10_suzumushi.png"},
-    {no:11, label:{ja:"ハムスター",en:"Hamster","zh-CN":"仓鼠"}, type:{ja:"かわいがる"}, message:{ja:"小さな動きに心がゆるむ相棒です。こまめに見に行きたくなる人に合いそうです。"}, file:"11_hamster.png"},
-    {no:12, label:{ja:"マーモット",en:"Marmot","zh-CN":"旱獭"}, type:{ja:"やさしく関わる"}, message:{ja:"どっしりした安心感のある相棒です。焦らず、そばで支える関わりが似合う人に合いそうです。"}, file:"12_marmot.png"},
-    {no:13, label:{ja:"うさぎ",en:"Rabbit","zh-CN":"兔子"}, type:{ja:"そっと甘える"}, message:{ja:"近づきすぎず、でもそばにいる相棒です。静かな信頼関係を育てたい人に合いそうです。"}, file:"13_usagi.png"},
-    {no:14, label:{ja:"文鳥",en:"Java sparrow","zh-CN":"文鸟"}, type:{ja:"信頼を育てる"}, message:{ja:"毎日の声かけに応えてくれる相棒です。少しずつ仲良くなる過程を楽しめる人に合いそうです。"}, file:"14_buncho.png"},
-    {no:15, label:{ja:"セキセイインコ",en:"Budgerigar","zh-CN":"虎皮鹦鹉"}, type:{ja:"会話を楽しむ"}, message:{ja:"小さな声やしぐさで気持ちを返してくれる相棒です。日々のやりとりを大切にしたい人に合いそうです。"}, file:"15_sekisei_inko.png"},
-    {no:16, label:{ja:"猫",en:"Cat","zh-CN":"猫"}, type:{ja:"距離感上手"}, message:{ja:"自由さと愛着の両方を大切にする相棒です。近づく時間と離れる時間の両方を楽しめる人に合いそうです。"}, file:"16_neko.png"},
-    {no:17, label:{ja:"犬",en:"Dog","zh-CN":"狗"}, type:{ja:"一緒に動く"}, message:{ja:"一緒に歩き、関わりを深く育てたい相棒です。反応が返ってくる関係を大切にする人に合いそうです。"}, file:"17_inu.png"},
-    {no:18, label:{ja:"リクガメ",en:"Tortoise","zh-CN":"陆龟"}, type:{ja:"長く見守る"}, message:{ja:"長い時間をかけて関係を育てる相棒です。急がず、続けることを大切にする人に合いそうです。"}, file:"18_rikugame.png"},
-    {no:19, label:{ja:"レオパ",en:"Leopard gecko","zh-CN":"豹纹守宫"}, type:{ja:"じっくり観察"}, message:{ja:"落ち着いた動きの中に個性が見える相棒です。静かに観察しながら関係を深めたい人に合いそうです。"}, file:"19_leopard_gecko.png"},
-    {no:20, label:{ja:"フェレット",en:"Ferret","zh-CN":"雪貂"}, type:{ja:"遊び好き"}, message:{ja:"遊びながら関係を作りたい人に合う相棒です。予想外の動きやいたずらっぽさも楽しめそうです。"}, file:"20_ferret.png"},
-    {no:21, label:{ja:"チンチラ",en:"Chinchilla","zh-CN":"龙猫"}, type:{ja:"やわらかい距離感"}, message:{ja:"触れたい気持ちと相手のペースの両方が大切な相棒です。やさしく待てる人に合いそうです。"}, file:"21_chinchilla.png"},
-    {no:22, label:{ja:"ペンギン",en:"Penguin","zh-CN":"企鹅"}, type:{ja:"水族館で会う"}, message:{ja:"てくてく進む勇気をくれる相棒です。一歩ずつ前に進むことを楽しめる人に合いそうです。"}, file:"22_penguin.png"},
-    {no:23, label:{ja:"アザラシ",en:"Seal","zh-CN":"海豹"}, type:{ja:"水族館で会う"}, message:{ja:"のんびりした安心感をくれる相棒です。力を抜いて一緒に過ごしたい人に合いそうです。"}, file:"23_azarashi.png"},
-    {no:24, label:{ja:"イルカ",en:"Dolphin","zh-CN":"海豚"}, type:{ja:"水族館で会う"}, message:{ja:"軽やかに進む気持ちをくれる相棒です。遊び心と知的なやりとりを楽しみたい人に合いそうです。"}, file:"24_iruka.png"},
-    {no:25, label:{ja:"カワウソ",en:"Otter","zh-CN":"水獭"}, type:{ja:"動物園・水族館で会う"}, message:{ja:"遊び心いっぱいの相棒です。楽しいことを見つけながら関係を育てたい人に合いそうです。"}, file:"25_kawauso.png"},
-    {no:26, label:{ja:"レッサーパンダ",en:"Red panda","zh-CN":"小熊猫"}, type:{ja:"動物園で会う"}, message:{ja:"かわいさとマイペースさの相棒です。ゆるやかな関係を大切にしたい人に合いそうです。"}, file:"26_lesser_panda.png"},
-    {no:27, label:{ja:"カピバラ",en:"Capybara","zh-CN":"水豚"}, type:{ja:"ほっと落ち着く"}, message:{ja:"穏やかな空気をくれる相棒です。無理なく自然体で関わりたい人に合いそうです。"}, file:"27_capybara.png"},
-    {no:28, label:{ja:"ライオン",en:"Lion","zh-CN":"狮子"}, type:{ja:"動物園で会う"}, message:{ja:"強さと誇りをくれる相棒です。大切なものを守る気持ちを持つ人に合いそうです。"}, file:"28_lion.png"},
-    {no:29, label:{ja:"ゾウ",en:"Elephant","zh-CN":"大象"}, type:{ja:"動物園で会う"}, message:{ja:"大きな安心感をくれる相棒です。ゆっくり深く覚えていく関係を大切にする人に合いそうです。"}, file:"29_zou.png"},
-    {no:30, label:{ja:"キリン",en:"Giraffe","zh-CN":"长颈鹿"}, type:{ja:"動物園で会う"}, message:{ja:"少し高い視点をくれる相棒です。ものごとを遠くから見て考えたい人に合いそうです。"}, file:"30_kirin.png"},
-    {no:31, label:{ja:"ハリネズミ",en:"Hedgehog","zh-CN":"刺猬"}, type:{ja:"そっと見守る"}, message:{ja:"相手のペースを大切にする関わりが似合う相棒です。無理に近づかず、少しずつ信頼を育てたい人に合いそうです。"}, file:"31_harinezumi.png"},
-    {no:32, label:{ja:"デグー",en:"Degu","zh-CN":"智利松鼠"}, type:{ja:"反応を楽しむ"}, message:{ja:"小さな反応を返してくれる相棒です。話しかけたり様子を見たりするのが好きな人に合いそうです。"}, file:"32_degu.png"},
-    {no:33, label:{ja:"ウーパールーパー",en:"Axolotl","zh-CN":"美西螈"}, type:{ja:"ふしぎを楽しむ"}, message:{ja:"不思議な見た目と静かな存在感のある相棒です。ちょっと変わった魅力を大切にする人に合いそうです。"}, file:"33_wooper_looper.png"},
-    {no:34, label:{ja:"イモリ",en:"Newt","zh-CN":"蝾螈"}, type:{ja:"じっくり観察"}, message:{ja:"小さな世界を静かに生きる相棒です。目立たない変化にも気づける人に合いそうです。"}, file:"34_imori.png"},
-    {no:35, label:{ja:"カエル",en:"Frog","zh-CN":"青蛙"}, type:{ja:"小さな変化を楽しむ"}, message:{ja:"ぴょんと動くたびに楽しい相棒です。変化の瞬間を楽しみたい人に合いそうです。"}, file:"35_kaeru.png"},
-    {no:36, label:{ja:"コーンスネーク",en:"Corn snake","zh-CN":"玉米蛇"}, type:{ja:"静かに寄りそう"}, message:{ja:"落ち着いた動きが魅力の相棒です。こわがらず、よく見て理解しようとする人に合いそうです。"}, file:"36_corn_snake.png"},
-    {no:37, label:{ja:"ニワトリ",en:"Chicken","zh-CN":"鸡"}, type:{ja:"朝を元気にする"}, message:{ja:"毎日にリズムをくれる相棒です。生活の中で自然に関わるのが好きな人に合いそうです。"}, file:"37_niwatori.png"},
-    {no:38, label:{ja:"ロバ",en:"Donkey","zh-CN":"驴"}, type:{ja:"ゆっくり支える"}, message:{ja:"焦らず進む気持ちをくれる相棒です。地道に続ける関係を大切にする人に合いそうです。"}, file:"38_roba.png"},
-    {no:39, label:{ja:"ヤギ",en:"Goat","zh-CN":"山羊"}, type:{ja:"のびのび触れ合う"}, message:{ja:"好奇心いっぱいの相棒です。気になることに近づいてみる力を持つ人に合いそうです。"}, file:"39_yagi.png"},
-    {no:40, label:{ja:"ヒツジ",en:"Sheep","zh-CN":"绵羊"}, type:{ja:"ほっと落ち着く"}, message:{ja:"ふわっと安心感をくれる相棒です。穏やかな空気を大切にしたい人に合いそうです。"}, file:"40_hitsuji.png"},
-    {no:41, label:{ja:"アルパカ",en:"Alpaca","zh-CN":"羊驼"}, type:{ja:"牧場で会う"}, message:{ja:"ふしぎな愛嬌のある相棒です。少しユーモアのある関係を楽しみたい人に合いそうです。"}, file:"41_alpaca.png"},
-    {no:42, label:{ja:"ミーアキャット",en:"Meerkat","zh-CN":"狐獴"}, type:{ja:"動物園で会う"}, message:{ja:"周りを見渡す勇気をくれる相棒です。小さな変化に早く気づく人に合いそうです。"}, file:"42_meerkat.png"},
-    {no:43, label:{ja:"フクロウ",en:"Owl","zh-CN":"猫头鹰"}, type:{ja:"動物園で会う"}, message:{ja:"静かなまなざしを感じる相棒です。すぐに答えを出さず、よく見て考える人に合いそうです。"}, file:"43_fukurou.png"},
-    {no:44, label:{ja:"ラッコ",en:"Sea otter","zh-CN":"海獭"}, type:{ja:"水族館で会う"}, message:{ja:"ぷかぷかした姿に癒される相棒です。安心できるものを大事に抱えていたい人に合いそうです。"}, file:"44_rakko.png"},
-    {no:45, label:{ja:"シロクマ",en:"Polar bear","zh-CN":"北极熊"}, type:{ja:"動物園で会う"}, message:{ja:"大きくて静かな力を感じる相棒です。ひとりでも進める強さを大切にする人に合いそうです。"}, file:"45_shirokuma.png"},
-    {no:46, label:{ja:"オオカミ",en:"Wolf","zh-CN":"狼"}, type:{ja:"静かな強さ"}, message:{ja:"群れと個の両方を大切にする相棒です。自分の意志を持ちながら、つながりも大事にする人に合いそうです。"}, file:"46_ookami.png"},
-    {no:47, label:{ja:"コアラ",en:"Koala","zh-CN":"考拉"}, type:{ja:"動物園で会う"}, message:{ja:"のんびり休む大切さを教えてくれる相棒です。がんばる時間と休む時間の両方を大切にする人に合いそうです。"}, file:"47_koala.png"},
-    {no:48, label:{ja:"パンダ",en:"Panda","zh-CN":"熊猫"}, type:{ja:"動物園で会う"}, message:{ja:"やさしい存在感で心をゆるめてくれる相棒です。見ているだけで安心できる関係を大切にする人に合いそうです。"}, file:"48_panda.png"},
-    {no:49, label:{ja:"カメレオン",en:"Chameleon","zh-CN":"变色龙"}, type:{ja:"変化を楽しむ"}, message:{ja:"状況に合わせて色を変えるように、柔らかく対応できる相棒です。変化を楽しめる人に合いそうです。"}, file:"49_chameleon.png"},
-    {no:50, label:{ja:"ナマケモノ",en:"Sloth","zh-CN":"树懒"}, type:{ja:"動物園で会う"}, message:{ja:"自分のペースを大切にしたい人に合う相棒です。ゆっくりでも続いていく関係を楽しめそうです。"}, file:"50_namakemono.png"}
+    {no:1, label:{ja:"メダカ",en:"Medaka fish","zh-CN":"青鳉鱼"}, type:{ja:"静かに見守る"}, message:{ja:"小さな変化を毎日そっと見守るキャラクターです。派手な反応は少なくても、続けて見るほど愛着が育ちます。"}, file:"01_medaka.png"},
+    {no:2, label:{ja:"金魚",en:"Goldfish","zh-CN":"金鱼"}, type:{ja:"静かに見守る"}, message:{ja:"ゆったり泳ぐ姿に癒されるキャラクターです。落ち着いて関わりたい人に合いそうです。"}, file:"02_kingyo.png"},
+    {no:3, label:{ja:"ベタ",en:"Betta","zh-CN":"斗鱼"}, type:{ja:"静かに見守る"}, message:{ja:"静かな時間の中に小さな華やかさをくれるキャラクターです。ひとりの時間も大切にしながら関係を育てたい人に合いそうです。"}, file:"03_beta.png"},
+    {no:4, label:{ja:"グッピー",en:"Guppy","zh-CN":"孔雀鱼"}, type:{ja:"変化を楽しむ"}, message:{ja:"小さな動きや変化を楽しませてくれるキャラクターです。毎日の違いを見つけるのが好きな人に合いそうです。"}, file:"04_guppy.png"},
+    {no:5, label:{ja:"ミナミヌマエビ",en:"Freshwater shrimp","zh-CN":"淡水虾"}, type:{ja:"観察する"}, message:{ja:"細かな動きに気づく楽しさがあるキャラクターです。小さな変化をじっくり見る人に合いそうです。"}, file:"05_minami_numaebi.png"},
+    {no:6, label:{ja:"カタツムリ",en:"Snail","zh-CN":"蜗牛"}, type:{ja:"ゆっくり寄りそう"}, message:{ja:"急がない時間をくれるキャラクターです。相手のペースを待ちながら関係を育てたい人に合いそうです。"}, file:"06_katatsumuri.png"},
+    {no:7, label:{ja:"オカヤドカリ",en:"Hermit crab","zh-CN":"寄居蟹"}, type:{ja:"小さな冒険"}, message:{ja:"小さな世界を探検する姿が楽しいキャラクターです。少しずつ新しい場所へ進みたい人に合いそうです。"}, file:"07_okayadokari.png"},
+    {no:8, label:{ja:"カブトムシ",en:"Rhinoceros beetle","zh-CN":"独角仙"}, type:{ja:"季節を楽しむ"}, message:{ja:"夏の元気を感じさせてくれるキャラクターです。短い時間でも濃く関わることを楽しめる人に合いそうです。"}, file:"08_kabutomushi.png"},
+    {no:9, label:{ja:"クワガタ",en:"Stag beetle","zh-CN":"锹形虫"}, type:{ja:"じっくり観察"}, message:{ja:"静かな強さを感じるキャラクターです。すぐに近づきすぎず、じっくり様子を見たい人に合いそうです。"}, file:"09_kuwagata.png"},
+    {no:10, label:{ja:"鈴虫",en:"Bell cricket","zh-CN":"铃虫"}, type:{ja:"音で寄りそう"}, message:{ja:"夜の時間を少し豊かにしてくれるキャラクターです。姿だけでなく、気配や雰囲気を大切にする人に合いそうです。"}, file:"10_suzumushi.png"},
+    {no:11, label:{ja:"ハムスター",en:"Hamster","zh-CN":"仓鼠"}, type:{ja:"かわいがる"}, message:{ja:"小さな動きに心がゆるむキャラクターです。こまめに見に行きたくなる人に合いそうです。"}, file:"11_hamster.png"},
+    {no:12, label:{ja:"マーモット",en:"Marmot","zh-CN":"旱獭"}, type:{ja:"やさしく関わる"}, message:{ja:"どっしりした安心感のあるキャラクターです。焦らず、そばで支える関わりが似合う人に合いそうです。"}, file:"12_marmot.png"},
+    {no:13, label:{ja:"うさぎ",en:"Rabbit","zh-CN":"兔子"}, type:{ja:"そっと甘える"}, message:{ja:"近づきすぎず、でもそばにいるキャラクターです。静かな信頼関係を育てたい人に合いそうです。"}, file:"13_usagi.png"},
+    {no:14, label:{ja:"文鳥",en:"Java sparrow","zh-CN":"文鸟"}, type:{ja:"信頼を育てる"}, message:{ja:"毎日の声かけに応えてくれるキャラクターです。少しずつ仲良くなる過程を楽しめる人に合いそうです。"}, file:"14_buncho.png"},
+    {no:15, label:{ja:"セキセイインコ",en:"Budgerigar","zh-CN":"虎皮鹦鹉"}, type:{ja:"会話を楽しむ"}, message:{ja:"小さな声やしぐさで気持ちを返してくれるキャラクターです。日々のやりとりを大切にしたい人に合いそうです。"}, file:"15_sekisei_inko.png"},
+    {no:16, label:{ja:"猫",en:"Cat","zh-CN":"猫"}, type:{ja:"距離感上手"}, message:{ja:"自由さと愛着の両方を大切にするキャラクターです。近づく時間と離れる時間の両方を楽しめる人に合いそうです。"}, file:"16_neko.png"},
+    {no:17, label:{ja:"犬",en:"Dog","zh-CN":"狗"}, type:{ja:"一緒に動く"}, message:{ja:"一緒に歩き、関わりを深く育てたいキャラクターです。反応が返ってくる関係を大切にする人に合いそうです。"}, file:"17_inu.png"},
+    {no:18, label:{ja:"リクガメ",en:"Tortoise","zh-CN":"陆龟"}, type:{ja:"長く見守る"}, message:{ja:"長い時間をかけて関係を育てるキャラクターです。急がず、続けることを大切にする人に合いそうです。"}, file:"18_rikugame.png"},
+    {no:19, label:{ja:"レオパ",en:"Leopard gecko","zh-CN":"豹纹守宫"}, type:{ja:"じっくり観察"}, message:{ja:"落ち着いた動きの中に個性が見えるキャラクターです。静かに観察しながら関係を深めたい人に合いそうです。"}, file:"19_leopard_gecko.png"},
+    {no:20, label:{ja:"フェレット",en:"Ferret","zh-CN":"雪貂"}, type:{ja:"遊び好き"}, message:{ja:"遊びながら関係を作りたい人に合うキャラクターです。予想外の動きやいたずらっぽさも楽しめそうです。"}, file:"20_ferret.png"},
+    {no:21, label:{ja:"チンチラ",en:"Chinchilla","zh-CN":"龙猫"}, type:{ja:"やわらかい距離感"}, message:{ja:"触れたい気持ちと相手のペースの両方が大切なキャラクターです。やさしく待てる人に合いそうです。"}, file:"21_chinchilla.png"},
+    {no:22, label:{ja:"ペンギン",en:"Penguin","zh-CN":"企鹅"}, type:{ja:"水族館で会う"}, message:{ja:"てくてく進む勇気をくれるキャラクターです。一歩ずつ前に進むことを楽しめる人に合いそうです。"}, file:"22_penguin.png"},
+    {no:23, label:{ja:"アザラシ",en:"Seal","zh-CN":"海豹"}, type:{ja:"水族館で会う"}, message:{ja:"のんびりした安心感をくれるキャラクターです。力を抜いて一緒に過ごしたい人に合いそうです。"}, file:"23_azarashi.png"},
+    {no:24, label:{ja:"イルカ",en:"Dolphin","zh-CN":"海豚"}, type:{ja:"水族館で会う"}, message:{ja:"軽やかに進む気持ちをくれるキャラクターです。遊び心と知的なやりとりを楽しみたい人に合いそうです。"}, file:"24_iruka.png"},
+    {no:25, label:{ja:"カワウソ",en:"Otter","zh-CN":"水獭"}, type:{ja:"動物園・水族館で会う"}, message:{ja:"遊び心いっぱいのキャラクターです。楽しいことを見つけながら関係を育てたい人に合いそうです。"}, file:"25_kawauso.png"},
+    {no:26, label:{ja:"レッサーパンダ",en:"Red panda","zh-CN":"小熊猫"}, type:{ja:"動物園で会う"}, message:{ja:"かわいさとマイペースさのキャラクターです。ゆるやかな関係を大切にしたい人に合いそうです。"}, file:"26_lesser_panda.png"},
+    {no:27, label:{ja:"カピバラ",en:"Capybara","zh-CN":"水豚"}, type:{ja:"ほっと落ち着く"}, message:{ja:"穏やかな空気をくれるキャラクターです。無理なく自然体で関わりたい人に合いそうです。"}, file:"27_capybara.png"},
+    {no:28, label:{ja:"ライオン",en:"Lion","zh-CN":"狮子"}, type:{ja:"動物園で会う"}, message:{ja:"強さと誇りをくれるキャラクターです。大切なものを守る気持ちを持つ人に合いそうです。"}, file:"28_lion.png"},
+    {no:29, label:{ja:"ゾウ",en:"Elephant","zh-CN":"大象"}, type:{ja:"動物園で会う"}, message:{ja:"大きな安心感をくれるキャラクターです。ゆっくり深く覚えていく関係を大切にする人に合いそうです。"}, file:"29_zou.png"},
+    {no:30, label:{ja:"キリン",en:"Giraffe","zh-CN":"长颈鹿"}, type:{ja:"動物園で会う"}, message:{ja:"少し高い視点をくれるキャラクターです。ものごとを遠くから見て考えたい人に合いそうです。"}, file:"30_kirin.png"},
+    {no:31, label:{ja:"ハリネズミ",en:"Hedgehog","zh-CN":"刺猬"}, type:{ja:"そっと見守る"}, message:{ja:"相手のペースを大切にする関わりが似合うキャラクターです。無理に近づかず、少しずつ信頼を育てたい人に合いそうです。"}, file:"31_harinezumi.png"},
+    {no:32, label:{ja:"デグー",en:"Degu","zh-CN":"智利松鼠"}, type:{ja:"反応を楽しむ"}, message:{ja:"小さな反応を返してくれるキャラクターです。話しかけたり様子を見たりするのが好きな人に合いそうです。"}, file:"32_degu.png"},
+    {no:33, label:{ja:"ウーパールーパー",en:"Axolotl","zh-CN":"美西螈"}, type:{ja:"ふしぎを楽しむ"}, message:{ja:"不思議な見た目と静かな存在感のあるキャラクターです。ちょっと変わった魅力を大切にする人に合いそうです。"}, file:"33_wooper_looper.png"},
+    {no:34, label:{ja:"イモリ",en:"Newt","zh-CN":"蝾螈"}, type:{ja:"じっくり観察"}, message:{ja:"小さな世界を静かに生きるキャラクターです。目立たない変化にも気づける人に合いそうです。"}, file:"34_imori.png"},
+    {no:35, label:{ja:"カエル",en:"Frog","zh-CN":"青蛙"}, type:{ja:"小さな変化を楽しむ"}, message:{ja:"ぴょんと動くたびに楽しいキャラクターです。変化の瞬間を楽しみたい人に合いそうです。"}, file:"35_kaeru.png"},
+    {no:36, label:{ja:"コーンスネーク",en:"Corn snake","zh-CN":"玉米蛇"}, type:{ja:"静かに寄りそう"}, message:{ja:"落ち着いた動きが魅力のキャラクターです。こわがらず、よく見て理解しようとする人に合いそうです。"}, file:"36_corn_snake.png"},
+    {no:37, label:{ja:"ニワトリ",en:"Chicken","zh-CN":"鸡"}, type:{ja:"朝を元気にする"}, message:{ja:"毎日にリズムをくれるキャラクターです。生活の中で自然に関わるのが好きな人に合いそうです。"}, file:"37_niwatori.png"},
+    {no:38, label:{ja:"ロバ",en:"Donkey","zh-CN":"驴"}, type:{ja:"ゆっくり支える"}, message:{ja:"焦らず進む気持ちをくれるキャラクターです。地道に続ける関係を大切にする人に合いそうです。"}, file:"38_roba.png"},
+    {no:39, label:{ja:"ヤギ",en:"Goat","zh-CN":"山羊"}, type:{ja:"のびのび触れ合う"}, message:{ja:"好奇心いっぱいのキャラクターです。気になることに近づいてみる力を持つ人に合いそうです。"}, file:"39_yagi.png"},
+    {no:40, label:{ja:"ヒツジ",en:"Sheep","zh-CN":"绵羊"}, type:{ja:"ほっと落ち着く"}, message:{ja:"ふわっと安心感をくれるキャラクターです。穏やかな空気を大切にしたい人に合いそうです。"}, file:"40_hitsuji.png"},
+    {no:41, label:{ja:"アルパカ",en:"Alpaca","zh-CN":"羊驼"}, type:{ja:"牧場で会う"}, message:{ja:"ふしぎな愛嬌のあるキャラクターです。少しユーモアのある関係を楽しみたい人に合いそうです。"}, file:"41_alpaca.png"},
+    {no:42, label:{ja:"ミーアキャット",en:"Meerkat","zh-CN":"狐獴"}, type:{ja:"動物園で会う"}, message:{ja:"周りを見渡す勇気をくれるキャラクターです。小さな変化に早く気づく人に合いそうです。"}, file:"42_meerkat.png"},
+    {no:43, label:{ja:"フクロウ",en:"Owl","zh-CN":"猫头鹰"}, type:{ja:"動物園で会う"}, message:{ja:"静かなまなざしを感じるキャラクターです。すぐに答えを出さず、よく見て考える人に合いそうです。"}, file:"43_fukurou.png"},
+    {no:44, label:{ja:"ラッコ",en:"Sea otter","zh-CN":"海獭"}, type:{ja:"水族館で会う"}, message:{ja:"ぷかぷかした姿に癒されるキャラクターです。安心できるものを大事に抱えていたい人に合いそうです。"}, file:"44_rakko.png"},
+    {no:45, label:{ja:"シロクマ",en:"Polar bear","zh-CN":"北极熊"}, type:{ja:"動物園で会う"}, message:{ja:"大きくて静かな力を感じるキャラクターです。ひとりでも進める強さを大切にする人に合いそうです。"}, file:"45_shirokuma.png"},
+    {no:46, label:{ja:"オオカミ",en:"Wolf","zh-CN":"狼"}, type:{ja:"静かな強さ"}, message:{ja:"群れと個の両方を大切にするキャラクターです。自分の意志を持ちながら、つながりも大事にする人に合いそうです。"}, file:"46_ookami.png"},
+    {no:47, label:{ja:"コアラ",en:"Koala","zh-CN":"考拉"}, type:{ja:"動物園で会う"}, message:{ja:"のんびり休む大切さを教えてくれるキャラクターです。がんばる時間と休む時間の両方を大切にする人に合いそうです。"}, file:"47_koala.png"},
+    {no:48, label:{ja:"パンダ",en:"Panda","zh-CN":"熊猫"}, type:{ja:"動物園で会う"}, message:{ja:"やさしい存在感で心をゆるめてくれるキャラクターです。見ているだけで安心できる関係を大切にする人に合いそうです。"}, file:"48_panda.png"},
+    {no:49, label:{ja:"カメレオン",en:"Chameleon","zh-CN":"变色龙"}, type:{ja:"変化を楽しむ"}, message:{ja:"状況に合わせて色を変えるように、柔らかく対応できるキャラクターです。変化を楽しめる人に合いそうです。"}, file:"49_chameleon.png"},
+    {no:50, label:{ja:"ナマケモノ",en:"Sloth","zh-CN":"树懒"}, type:{ja:"動物園で会う"}, message:{ja:"自分のペースを大切にしたい人に合うキャラクターです。ゆっくりでも続いていく関係を楽しめそうです。"}, file:"50_namakemono.png"}
   ];
 
   function localLabel(obj){ return obj?.[L()] || obj?.ja || ""; }
-  function localType(card){ return localLabel(card?.type) || (L()==="en" ? "Companion" : L()==="zh-CN" ? "小伙伴" : "相棒"); }
+  function localType(card){ return localLabel(card?.type) || (L()==="en" ? "Character" : L()==="zh-CN" ? "角色" : "キャラクター"); }
   function localMessage(card){ return localLabel(card?.message) || ""; }
   /* ===========================================================
-     図鑑・相棒カード画像 修正版
+     図鑑・キャラクターカード画像 修正版
      ・GitHubに置いた public/assets/pets/21_chinchilla.png のような
        「番号_名前.png」をそのまま使います。
      ・別の動物画像や絵文字へ勝手に切り替えません。
@@ -5215,7 +5560,7 @@
      =========================================================== */
   function zukanSilhouetteSvg(card){
     const no = Number(card?.no || 0);
-    const name = localLabel(card?.label) || "Companion";
+    const name = localLabel(card?.label) || "Character";
     const type = localType(card) || "";
     const animalGroup = no <= 5 ? "fish" : no <= 10 ? "small" : no <= 22 ? "pet" : no <= 30 ? "zoo" : no <= 36 ? "wild" : no <= 42 ? "farm" : "relax";
     const padNo = String(no).padStart(2,"0");
@@ -5255,9 +5600,9 @@
 
   function companionCardTitle(card){
     const name = localLabel(card?.label);
-    if(L()==="en") return `Your perfect companion is ${name}.`;
-    if(L()==="zh-CN") return `最适合你的小伙伴是${name}。`;
-    return `あなたにぴったりな相棒は「${name}」です。`;
+    if(L()==="en") return `Your perfect character is ${name}.`;
+    if(L()==="zh-CN") return `最适合你的角色是${name}。`;
+    return `あなたにぴったりなキャラクターは「${name}」です。`;
   }
 
   function companionSilhouetteHtml(card){
@@ -5271,39 +5616,39 @@
   function resultTextByProfile(profile){
     const dict = {
       pet:{
-        ja:["ふれあいを大切にする相棒","なでたり、近くにいたりしながら、相棒との距離を少しずつ縮めていけます。"],
-        en:["Companion who enjoys closeness","This companion suits someone who builds closeness by staying nearby and caring gently."],
-        "zh-CN":["喜欢亲近的小伙伴","适合通过靠近和轻轻照护，慢慢拉近距离的人。"]
+        ja:["ふれあいを大切にするキャラクター","なでたり、近くにいたりしながら、キャラクターとの距離を少しずつ縮めていけます。"],
+        en:["Character who enjoys closeness","This character suits someone who builds closeness by staying nearby and caring gently."],
+        "zh-CN":["喜欢亲近的角色","适合通过靠近和轻轻照护，慢慢拉近距离的人。"]
       },
       feed:{
-        ja:["ごはんで気持ちを返してくれる相棒","食べることや安心できるリズムを大切にしながら、関わりを育てていけます。"],
-        en:["Companion who loves steady care","This companion suits someone who values feeding, comfort, and a steady rhythm."],
-        "zh-CN":["喜欢稳定照护的小伙伴","适合重视喂食、安心感和日常节奏的人。"]
+        ja:["ごはんで気持ちを返してくれるキャラクター","食べることや安心できるリズムを大切にしながら、関わりを育てていけます。"],
+        en:["Character who loves steady care","This character suits someone who values feeding, comfort, and a steady rhythm."],
+        "zh-CN":["喜欢稳定照护的角色","适合重视喂食、安心感和日常节奏的人。"]
       },
       outing:{
-        ja:["おでかけを楽しむ相棒","一緒に体験することを通して、相棒との関係をつくっていけます。"],
-        en:["Companion who enjoys little adventures","This companion suits someone who builds a relationship through shared experiences."],
-        "zh-CN":["喜欢外出的小伙伴","适合通过共同体验来建立关系的人。"]
+        ja:["おでかけを楽しむキャラクター","一緒に体験することを通して、キャラクターとの関係をつくっていけます。"],
+        en:["Character who enjoys little adventures","This character suits someone who builds a relationship through shared experiences."],
+        "zh-CN":["喜欢外出的角色","适合通过共同体验来建立关系的人。"]
       },
       clean:{
-        ja:["こまめな見守りに応えてくれる相棒","小さな変化に気づきながら、相棒が安心できる環境を整えていけます。"],
-        en:["Companion who responds to careful care","This companion suits someone who notices small changes and keeps things comfortable."],
-        "zh-CN":["回应细心照护的小伙伴","适合注意小变化、营造安心环境的人。"]
+        ja:["こまめな見守りに応えてくれるキャラクター","小さな変化に気づきながら、キャラクターが安心できる環境を整えていけます。"],
+        en:["Character who responds to careful care","This character suits someone who notices small changes and keeps things comfortable."],
+        "zh-CN":["回应细心照护的角色","适合注意小变化、营造安心环境的人。"]
       },
       memory:{
-        ja:["記憶を大切にしてくれる相棒","これまで一緒に過ごした時間や、反応のつながりを大切にしてくれる相棒です。"],
-        en:["Companion who treasures shared memories","This companion suits someone who values shared history and continuity."],
-        "zh-CN":["珍惜共同记忆的小伙伴","适合重视一起度过的时间和关系连续感的人。"]
+        ja:["記憶を大切にしてくれるキャラクター","これまで一緒に過ごした時間や、反応のつながりを大切にしてくれるキャラクターです。"],
+        en:["Character who treasures shared memories","This character suits someone who values shared history and continuity."],
+        "zh-CN":["珍惜共同记忆的角色","适合重视一起度过的时间和关系连续感的人。"]
       },
       balanced:{
-        ja:["自然体で寄り添える相棒","特別に意識していなくても、必要なところで自然に関わっていける相棒です。"],
-        en:["Companion who fits a natural rhythm","This companion suits someone who cares naturally without forcing it."],
-        "zh-CN":["自然陪伴的小伙伴","适合自然地照顾需要之处、不用力过度的人。"]
+        ja:["自然体で寄り添えるキャラクター","特別に意識していなくても、必要なところで自然に関わっていけるキャラクターです。"],
+        en:["Character who fits a natural rhythm","This character suits someone who cares naturally without forcing it."],
+        "zh-CN":["自然陪伴的角色","适合自然地照顾需要之处、不用力过度的人。"]
       },
       occasional:{
-        ja:["自分のペースで会いに来られる相棒","ずっと張りつくのではなく、自分のペースで思い出して会いに来られる相棒です。"],
-        en:["Companion for your own pace","This companion suits someone who comes back at their own pace rather than staying all the time."],
-        "zh-CN":["适合自己节奏的小伙伴","适合按照自己的节奏想起它、来看它的人。"]
+        ja:["自分のペースで会いに来られるキャラクター","ずっと張りつくのではなく、自分のペースで思い出して会いに来られるキャラクターです。"],
+        en:["Character for your own pace","This character suits someone who comes back at their own pace rather than staying all the time."],
+        "zh-CN":["适合自己节奏的角色","适合按照自己的节奏想起它、来看它的人。"]
       }
     };
     const pair = dict[profile]?.[L()] || dict[profile]?.ja || dict.balanced.ja;
@@ -5348,10 +5693,10 @@
     const txt = resultTextByProfile(profile);
     const lang = L();
     const basis = lang === "en"
-      ? "Selected as a companion card using your care log and final survey answers."
+      ? "Selected as a character card using your care log and final survey answers."
       : lang === "zh-CN"
-        ? "根据你的照护日志和最后问卷回答，显示这张小伙伴卡片。"
-        : "5日間のお世話ログと最後のアンケート回答をもとに、相棒カードを表示しています。";
+        ? "根据你的照护日志和最后问卷回答，显示这张角色卡片。"
+        : "5日間のお世話ログと最後のアンケート回答をもとに、キャラクターカードを表示しています。";
     return {profile, pet, title:txt.title, text:txt.text, basis};
   }
 
@@ -5463,10 +5808,10 @@
     const width = Math.round((heart / need) * 100);
     const lang = L();
     const help = lang === "en"
-      ? "When all four care meters are full, one heart is added. When 3 hearts are collected, one companion card arrives."
+      ? "When all four care meters are full, one heart is added. When 3 hearts are collected, one character card arrives."
       : lang === "zh-CN"
-        ? "4个照护条全部满时，爱心会增加1个。集满3个爱心后，会得到1张小伙伴卡片。"
-        : "4つのお世話メーターがすべて満タンになると、ハートが1つ増えます。ハートが3つ集まると、相棒カードが1枚届きます。";
+        ? "4个照护条全部满时，爱心会增加1个。集满3个爱心后，会得到1张角色卡片。"
+        : "4つのお世話メーターがすべて満タンになると、ハートが1つ増えます。ハートが3つ集まると、キャラクターカードが1枚届きます。";
     return `
       <div class="zukanStatus">
         <strong>${esc(t("zukanTitle"))}</strong>
@@ -5593,10 +5938,10 @@
       z.pending_notice = "";
       saveState();
       const msg = L()==="en"
-        ? `Today’s companion cards are limited to ${CONFIG.ZUKAN_DAILY_CARD_LIMIT}. Please continue again tomorrow.`
+        ? `Today’s character cards are limited to ${CONFIG.ZUKAN_DAILY_CARD_LIMIT}. Please continue again tomorrow.`
         : L()==="zh-CN"
-          ? `今天的小伙伴卡片最多${CONFIG.ZUKAN_DAILY_CARD_LIMIT}张。请明天再继续。`
-          : `今日の相棒カードは${CONFIG.ZUKAN_DAILY_CARD_LIMIT}枚までです。明日また続けてください。`;
+          ? `今天的角色卡片最多${CONFIG.ZUKAN_DAILY_CARD_LIMIT}张。请明天再继续。`
+          : `今日のキャラクターカードは${CONFIG.ZUKAN_DAILY_CARD_LIMIT}枚までです。明日また続けてください。`;
       setTimeout(() => showMiniToast(msg), 120);
     }
   }
@@ -5660,9 +6005,9 @@
 
   function shareLeadText(type){
     const name = shareCompanionName(type);
-    if(L()==="en") return `Your perfect companion is ${name}.`;
-    if(L()==="zh-CN") return `最适合你的小伙伴是${name}。`;
-    return `あなたにぴったりな相棒は${name}です。`;
+    if(L()==="en") return `Your perfect character is ${name}.`;
+    if(L()==="zh-CN") return `最适合你的角色是${name}。`;
+    return `あなたにぴったりなキャラクターは${name}です。`;
   }
 
   function shareNativeText(type){
@@ -5677,9 +6022,9 @@
 
   function shareCardMainCatch(type){
     const name = shareCompanionName(type);
-    if(L()==="en") return `Your perfect companion is\n${name}.`;
-    if(L()==="zh-CN") return `最适合你的小伙伴是\n${name}。`;
-    return `あなたにぴったりな相棒は\n${name}です`;
+    if(L()==="en") return `Your perfect character is\n${name}.`;
+    if(L()==="zh-CN") return `最适合你的角色是\n${name}。`;
+    return `あなたにぴったりなキャラクターは\n${name}です`;
   }
 
   function shareCardSubCatch(){
@@ -5690,7 +6035,7 @@
     const lang = L();
     const dict = {
       title:{ja:"SNS共有用カード", en:"SNS share card", "zh-CN":"SNS分享卡片"},
-      subtitle:{ja:"投稿カードには、相棒のシルエット・相棒名・公開URLだけを載せます。研究IDや条件IDは載せません。", en:"The shared card only shows the companion silhouette, companion name, and public game URL. It does not show research IDs or condition IDs.", "zh-CN":"分享卡片只显示小伙伴剪影、小伙伴名称和公开URL，不显示研究ID或条件ID。"},
+      subtitle:{ja:"投稿カードには、キャラクターのシルエット・キャラクター名・公開URLだけを載せます。研究IDや条件IDは載せません。", en:"The shared card only shows the character silhouette, character name, and public game URL. It does not show research IDs or condition IDs.", "zh-CN":"分享卡片只显示角色剪影、角色名称和公开URL，不显示研究ID或条件ID。"},
       guide:{ja:"ゲームURL", en:"Game URL", "zh-CN":"游戏URL"},
       copy:{ja:"共有文をコピー", en:"Copy share text", "zh-CN":"复制分享文字"},
       sns:{ja:"SNSに投稿する", en:"Share to SNS", "zh-CN":"分享到SNS"},
@@ -6009,9 +6354,9 @@
         "zh-CN":"研究部分到这里结束"
       },
       body:{
-        ja:"今回は5日間すべての日のお世話がそろっていないため、最後の同一性アンケートと相棒診断は表示しません。途中まで参加してくれて、ありがとうございました。",
-        en:"Because care was not completed on all five study days, the final identity survey and companion result are not shown. Thank you for taking part up to this point.",
-        "zh-CN":"由于五个研究日的照护没有全部完成，因此不会显示最后的同一性问卷和小伙伴结果。感谢你参与到这里。"
+        ja:"今回は5日間すべての日のお世話がそろっていないため、最後の同一性アンケートとキャラクター診断は表示しません。途中まで参加してくれて、ありがとうございました。",
+        en:"Because care was not completed on all five study days, the final identity survey and character result are not shown. Thank you for taking part up to this point.",
+        "zh-CN":"由于五个研究日的照护没有全部完成，因此不会显示最后的同一性问卷和角色结果。感谢你参与到这里。"
       },
       free:{
         ja:"ここから先は研究とは別の「つづきのお世話」として、自由に遊べます。ここでの操作は研究ログには送信されません。",
@@ -6092,7 +6437,7 @@
         </div>
         <p class="small">${esc(t("cardNote"))}</p>
         ${sharePreviewHtml(type)}
-        <p class="small">${esc(L()==="ja" ? "このあと、研究とは別に相棒とのお世話を続けることもできます。続ける場合は、ここから先は「つづきのお世話」として遊べます。" : L()==="en" ? "After this, you can keep caring for a companion separately from the research part. If you continue, it will be Continued Care." : "之后，你也可以在研究部分之外继续照护小伙伴。继续的话，这一部分是“继续照护”。")}</p>
+        <p class="small">${esc(L()==="ja" ? "このあと、研究とは別にキャラクターとのお世話を続けることもできます。続ける場合は、ここから先は「つづきのお世話」として遊べます。" : L()==="en" ? "After this, you can keep caring for a character separately from the research part. If you continue, it will be Continued Care." : "之后，你也可以在研究部分之外继续照护角色。继续的话，这一部分是“继续照护”。")}</p>
         <div class="row">
           <button id="continueFreeBtn" type="button">${esc(t("continueFree"))}</button>
           <button id="endBtn" class="secondary" type="button">${esc(t("end"))}</button>
@@ -6350,6 +6695,13 @@
     if(needsLetterReturnSequence(currentDay())){
       return ensureLetterReturnSequence(currentDay());
     }
+    if(state.mode === "research" && currentDay() === 3 && state.letter_shown_at && !state.return_completed){
+      if(state.screen === "miniGame" && predictionAllowed()) return renderPredictionGame();
+      state.screen = "letter";
+      saveState();
+      return renderLetter();
+    }
+    if(state.screen === "miniGame" && predictionAllowed()) return renderPredictionGame();
     state.screen = "game";
     saveState();
     renderGame("look");
@@ -6364,7 +6716,7 @@
 
   $("choiceClose").addEventListener("click", () => $("choiceModal").classList.add("hidden"));
   $("renameSubmit").addEventListener("click", () => {
-    const name = ($("renameInput").value || "").trim() || (L()==="en" ? "Buddy" : L()==="zh-CN" ? "伙伴" : "相棒");
+    const name = ($("renameInput").value || "").trim() || (L()==="en" ? "Buddy" : L()==="zh-CN" ? "角色" : "キャラクター");
     state.pet_name = name;
     state.renamed_after_change = true;
     $("renameModal").classList.add("hidden");
@@ -6375,6 +6727,9 @@
   updateInstallButtonText();
   disableBrowserImageSearch(document);
   restoreRoute();
+  // 既存の研究ID・保存状態はそのまま、未送信キューだけを再試行する。
+  setTimeout(flushDeliveryOutbox, 1200);
+  window.addEventListener("online", flushDeliveryOutbox);
   setTimeout(updateCareAttentionIndicator, 0);
 
   // 画面を閉じる・バックグラウンドへ移る直前にも、可能な範囲で最新状態を送ります。
