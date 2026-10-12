@@ -5705,11 +5705,18 @@
     const pet = pickZukanPet(profile);
     const txt = resultTextByProfile(profile);
     const lang = L();
-    const basis = lang === "en"
-      ? "Selected as a character card using your care log and final survey answers."
-      : lang === "zh-CN"
-        ? "根据你的照护日志和最后问卷回答，显示这张角色卡片。"
-        : "5日間のお世話ログと最後のアンケート回答をもとに、キャラクターカードを表示しています。";
+    const logsOnly = !state.completed_survey;
+    const basis = logsOnly
+      ? (lang === "en"
+        ? "Selected as a character card using your care log so far."
+        : lang === "zh-CN"
+          ? "根据你到目前为止的照护日志，显示这张角色卡片。"
+          : "ここまでのお世話ログをもとに、キャラクターカードを表示しています。")
+      : (lang === "en"
+        ? "Selected as a character card using your care log and final survey answers."
+        : lang === "zh-CN"
+          ? "根据你的照护日志和最后问卷回答，显示这张角色卡片。"
+          : "5日間のお世話ログと最後のアンケート回答をもとに、キャラクターカードを表示しています。");
     return {profile, pet, title:txt.title, text:txt.text, basis};
   }
 
@@ -6367,9 +6374,9 @@
         "zh-CN":"研究部分到这里结束"
       },
       body:{
-        ja:"今回は5日間すべての日のお世話がそろっていないため、最後の同一性アンケートとキャラクター診断は表示しません。途中まで参加してくれて、ありがとうございました。",
-        en:"Because care was not completed on all five study days, the final identity survey and character result are not shown. Thank you for taking part up to this point.",
-        "zh-CN":"由于五个研究日的照护没有全部完成，因此不会显示最后的同一性问卷和角色结果。感谢你参与到这里。"
+        ja:"今回は5日間すべての日のお世話がそろっていないため、最後のアンケートは表示しません。途中まで参加してくれて、ありがとうございました。ここまでのお世話をもとにした相棒カードをお届けします。",
+        en:"Because care was not completed on all five study days, the final survey is not shown. Thank you for taking part up to this point. Here is a character card based on the care you have given so far.",
+        "zh-CN":"由于五个研究日的照护没有全部完成，因此不会显示最后的问卷。感谢你参与到这里。这里送上根据目前照护情况选出的角色卡片。"
       },
       free:{
         ja:"ここから先は研究とは別の「つづきのお世話」として、自由に遊べます。ここでの操作は研究ログには送信されません。",
@@ -6445,12 +6452,29 @@
     if(state.mode !== "research") return renderGame("look");
     state.screen = "incomplete";
     state.reward_eligible = false;
+    // v35.6：途中終了の人にも相棒カードを渡す（研究の変数には使わない表示のみ）。
+    const type = judgeCareType();
+    ensureZukan();
+    const firstCard = !state.zukan.companion_no;
+    state.zukan.companion_no = state.zukan.companion_no || type.pet.no;
+    const card = PET_ZUKAN_CARDS.find(p => p.no === state.zukan.companion_no) || type.pet;
     saveState();
+    if(firstCard) logEvent("companion_card_shown_incomplete", {pet_no:card.no, profile:type.profile});
     root.innerHTML = `
       <section class="card">
         ${participantExperiencedChange() ? debriefHtml() : ""}
         <h2>${esc(researchIncompleteText("title"))}</h2>
         <p>${esc(researchIncompleteText("body"))}</p>
+        <div class="resultCard" style="margin:12px 0">
+          <div class="pill">${esc(t("cardTitle"))}</div>
+          <div class="zukanNo">PET ZUKAN No.${String(card.no).padStart(2,"0")}</div>
+          ${companionSilhouetteHtml(card)}
+          <div class="petLabel">${esc(localLabel(card.label))}</div>
+          <div class="zukanType">${esc(localType(card))}</div>
+          <p><strong>${esc(companionCardTitle(card))}</strong></p>
+          <div class="zukanCardMessage">${esc(localMessage(card))}</div>
+          <p class="basisText">${esc(type.basis)}</p>
+        </div>
         <div class="notice small">${esc(researchIncompleteText("free"))}</div>
         <div class="row" style="margin-top:14px">
           <button id="incompleteContinueFreeBtn" type="button">${esc(researchIncompleteText("continue"))}</button>
@@ -6526,7 +6550,8 @@
     // 途中離脱者は診断を行わず、図鑑0枚から自由プレイを開始します。
     let companionNo = null;
     let collected = [];
-    if(completedResearch){
+    // v35.6：完遂者・途中終了者のどちらも、表示した相棒カードを図鑑の1枚目として引き継ぐ。
+    if(completedResearch || state.research_completion_status === "incomplete"){
       const z = ensureZukan();
       companionNo = z.companion_no || judgeCareType().pet.no;
       collected = Array.isArray(z.collected) ? z.collected.slice() : [];
@@ -6538,7 +6563,7 @@
       research_completion_status:state.research_completion_status || "",
       missing_days:state.research_missing_days || [],
       reward_eligible:!!state.reward_eligible,
-      diagnosis_seed_card:completedResearch ? companionNo : null
+      diagnosis_seed_card:companionNo
     });
 
     state.mode = "free";
