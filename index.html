@@ -1181,6 +1181,19 @@
     .prediction-score{display:flex;justify-content:space-around;gap:6px;background:rgba(255,255,255,.85);border-radius:16px;padding:12px;margin:12px 0;font-size:14px;font-weight:800}
     .prediction-score strong{display:block;font-size:23px;color:#7842a4}
     .predictionChoices button{font-size:17px!important;white-space:normal}
+    /* 50名ごとに1名の抽選案内。抽選処理・当選者確定はサーバー側のみで行います。 */
+    .lotteryNotice{
+      margin:14px 0;padding:13px 14px;border-radius:18px;
+      background:rgba(255,248,236,.95);border-left:5px solid #ffd76b;
+      color:#4b3c65;font-size:13px;line-height:1.75;
+    }
+    .lotteryNotice strong{color:#3e3155}
+    .lotteryTicket{
+      margin:16px 0;padding:14px;border-radius:18px;
+      border:1px solid rgba(117,96,150,.22);background:rgba(255,255,255,.78);
+      color:#4b3c65;text-align:center;
+    }
+    .lotteryTicketCode{font-size:19px;font-weight:900;letter-spacing:.07em;word-break:break-all}
   </style>
 </head>
 <body>
@@ -1245,7 +1258,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261012-v35.7-survey-autosave",
+    APP_VERSION: "osewa-20261012-v35.8.1-lottery-notice-short",
     BACKUP_SCHEMA_VERSION: 1,
     BACKUP_DEBOUNCE_MS: 1800,
     // 研究ログはCloudflare Worker経由で保存します。
@@ -1390,6 +1403,66 @@
       renameTitle:"给它取名", renameHelp:"请输入从今天开始显示的名字。", renameSubmit:"确定",
     }
   };
+
+  // ===========================================================
+  // 抽選について（画面の案内のみ）。当選者はこのHTMLでは絶対に選びません。
+  // 「50件の有効な最終回答」ごとにサーバー上で1人を抽選します。
+  // ===========================================================
+  const LOTTERY_TEXT = {
+    ja:{
+      title:"Amazonギフトカード抽選のご案内",
+      notice:"5日間のお世話を終え、最後のアンケートまで回答した方が対象です。有効回答が50名集まるごとに、その50名の中から1名を抽選します。",
+      privacy:"このゲームやアンケートにはメールアドレスなどの連絡先を入力しないでください。当選確認・受取方法は研究者が別途案内します。",
+      ticketTitle:"抽選照合コード（控え）",
+      ticketHelp:"このコードを保存してください。抽選結果の確認に使うための控えです。この画面に「当選」と表示されることはありません。",
+      copy:"コードをコピー",copied:"コピーしました"
+    },
+    en:{
+      title:"Amazon Gift Card Drawing",
+      notice:"Participants who complete all five days of care and the final survey are eligible. For every 50 valid responses received, one winner is drawn at random from those 50 participants.",
+      privacy:"Do not enter an email address or other contact details into this game or survey. The researcher will provide separate instructions for checking results and claiming prizes.",
+      ticketTitle:"Drawing reference code",ticketHelp:"Save this code to check the drawing outcome later. No win status is shown on this screen.",
+      copy:"Copy code",copied:"Copied"
+    },
+    "zh-CN":{
+      title:"亚马逊礼品卡抽奖说明",
+      notice:"完成五天照护并提交最终问卷的参与者可以参加抽奖。每累计50份有效回答，就从这50名参与者中随机抽出1人。",
+      privacy:"请勿在游戏或问卷中填写邮箱或其他联系方式。研究人员将另行说明确认结果和领取奖品的方法。",
+      ticketTitle:"抽奖核对代码",ticketHelp:"请保存此代码，供日后核对抽奖结果。此页面不会显示是否中奖。",
+      copy:"复制代码",copied:"已复制"
+    }
+  };
+  function lotteryText(key){return (LOTTERY_TEXT[L()] || LOTTERY_TEXT.ja)[key] || LOTTERY_TEXT.ja[key];}
+  function lotteryNoticeHtml(){
+    return `<div class="lotteryNotice"><strong>${esc(lotteryText("title"))}</strong><div>${esc(lotteryText("notice"))}</div><div class="small">${esc(lotteryText("privacy"))}</div></div>`;
+  }
+  function createLotteryTicket(){
+    // 回答者に渡す控え番号。復元用のresume_codeとは別の乱数です。
+    const raw = randomSecureString(12).toUpperCase();
+    return `IP-${raw.slice(0,4)}-${raw.slice(4,8)}-${raw.slice(8,12)}`;
+  }
+  function lotteryTicketHtml(){
+    if(!state.completed_survey || !state.lottery_ticket_code) return "";
+    return `<div class="lotteryTicket">
+      <strong>${esc(lotteryText("ticketTitle"))}</strong>
+      <div class="lotteryTicketCode">${esc(state.lottery_ticket_code)}</div>
+      <p class="small">${esc(lotteryText("ticketHelp"))}</p>
+      <button id="copyLotteryTicketBtn" class="secondary" type="button">${esc(lotteryText("copy"))}</button>
+    </div>`;
+  }
+  function bindLotteryTicketButton(){
+    const btn = $("copyLotteryTicketBtn");
+    if(!btn || !state.lottery_ticket_code) return;
+    btn.addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText(state.lottery_ticket_code);
+        btn.textContent = lotteryText("copied");
+      }catch(e){
+        // 一部のブラウザではコピー権限がないため、コードの文字列を選択してもらいます。
+        window.prompt(lotteryText("copy"), state.lottery_ticket_code);
+      }
+    });
+  }
 
   const TRANSITION_TEXT = {
     ja:{
@@ -2538,6 +2611,8 @@
       research_incomplete_reason:"",
       research_missing_days:[],
       reward_eligible:false,
+      lottery_ticket_code:"",
+      lottery_joined_at:"",
       completed_survey:false,
       survey_auto_opened_at:"",
       logs:{visits:0, feed:0, outing:0, pet:0, clean:0, look:0, actions_total:0},
@@ -2646,7 +2721,7 @@
       "return_started_at","return_completed","return_completed_at","name_cue_days",
       "mode","research_day_care","research_completion_status","research_completed_at",
       "research_incomplete_at","research_incomplete_reason","research_missing_days","reward_eligible",
-      "completed_survey","survey_auto_opened_at","debrief_shown_at","logs","free_logs","zukan",
+      "completed_survey","lottery_ticket_code","lottery_joined_at","survey_auto_opened_at","debrief_shown_at","logs","free_logs","zukan",
       "tips_shown","tips_logged","screen"
     ];
     const snapshot = {};
@@ -3795,10 +3870,7 @@
         <span class="pill">${esc(t("researchPill"))}</span>
         <h1>${esc(t("introTitle"))}</h1>
         <p>${esc(t("introText"))}</p>
-        <div class="notice small" style="margin:12px 0">
-          <strong>すでにこの研究を始めた方へ：</strong><br>
-          ここで新しく登録し直さないでください。最初に遊んだブラウザ、またはホーム画面に追加したIdealPawから開いてください。QRコードを読み直すと、端末によっては別のブラウザ内で開き、保存済みデータが見えないことがあります。
-        </div>
+        ${lotteryNoticeHtml()}
         <label for="language">${esc(t("langLabel"))}</label>
         <select id="language">
           <option value="ja"${L()==="ja"?" selected":""}>日本語</option>
@@ -3830,6 +3902,7 @@
         <p>${esc(t("consentP2"))}</p>
         <p>${esc(t("consentP3"))}</p>
         <div class="notice small">${esc(t("consentNotice"))}</div>
+        ${lotteryNoticeHtml()}
         <label class="checkline"><input id="ageCheck" type="checkbox">${esc(t("check1"))}</label>
         <label class="checkline"><input id="privacyCheck" type="checkbox">${esc(t("check2"))}</label>
         <div class="row">
@@ -5582,6 +5655,10 @@
       reasons:deriveSurveyReasonsFromKey(q5Clue),free_text:$("q2Reason").value.trim(),
       identity_continuity_percent:clamp(Math.round((q1Identity-1)/6*100),0,100)
     };
+    // 抽選番号は最終アンケート送信時に1度だけ発行します。
+    // 当選者判定はクライアントでは行わず、必ずサーバー側の抽選で決定します。
+    state.lottery_ticket_code = state.lottery_ticket_code || createLotteryTicket();
+    state.lottery_joined_at = state.lottery_joined_at || new Date().toISOString();
     state.completed_survey=true;
     state.research_completion_status="survey_complete";
     state.research_completed_at=state.research_completed_at||new Date().toISOString();
@@ -5593,6 +5670,11 @@
       survey:state.survey,logs:state.logs,
       research_day_care:{...ensureResearchDayCareTracking()},
       five_day_care_complete:true,reward_eligible:true,
+      lottery_ticket_code:state.lottery_ticket_code,
+      lottery_joined_at:state.lottery_joined_at,
+      lottery_policy:"one_random_winner_per_50_valid_surveys",
+      lottery_group_size:50,
+      lottery_auto_send_gift:false,
       care_meters_total:{...state.care_meters_total},full_meter_count:state.full_meter_count,
       source:"embedded_final_survey_2026-10-11_docx"
     });
@@ -6604,6 +6686,7 @@
         ${debriefHtml()}
         <h2>${esc(t("thanks"))}</h2>
         <p>${esc(t("thanksText"))}</p>
+        ${lotteryTicketHtml()}
         <div class="resultCard">
           <div class="pill">${esc(t("cardTitle"))}</div>
           <div class="zukanNo">PET ZUKAN No.${String(type.pet.no).padStart(2,"0")}</div>
@@ -6627,6 +6710,7 @@
       </section>`;
     logDebriefShownOnce("after_survey_submit");
     bindShareButtons(type);
+    bindLotteryTicketButton();
     $("continueFreeBtn").addEventListener("click", enterFreeMode);
     $("endBtn").addEventListener("click", () => { logEvent("end",{}); setScreen("end"); });
   }
@@ -6709,8 +6793,10 @@
       <section class="card center">
         <h2>${esc(t("endedTitle"))}</h2>
         <p>${esc(t("endedText"))}</p>
+        ${lotteryTicketHtml()}
         <p class="small">${esc(t("closeWindow"))}</p>
       </section>`;
+    bindLotteryTicketButton();
   }
 
 
