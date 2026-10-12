@@ -1245,7 +1245,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261012-v35.6-debrief",
+    APP_VERSION: "osewa-20261012-v35.7-survey-autosave",
     BACKUP_SCHEMA_VERSION: 1,
     BACKUP_DEBOUNCE_MS: 1800,
     // 研究ログはCloudflare Worker経由で保存します。
@@ -5390,6 +5390,79 @@
     q7.disabled = selected.length === 0;
   }
 
+  // v35.7：最後のアンケートだけを、送信前はこの端末に自動保存します。
+  // 研究ID別の下書きなので、別の参加者や別の実験の回答は混ざりません。
+  // この下書きはログ送信用の state やサーバーのバックアップには含めません。
+  const SURVEY_DRAFT_STORAGE_PREFIX = "osewa_survey_draft_v1_";
+  const SURVEY_DRAFT_FIELD_IDS = [
+    "surveyAge", "surveyGender", "q1Identity", "q1Replaced", "q2Reason",
+    "q3ChangeAwareness", "q4Other", "q5MostImportant", "q5Other",
+    "q6Attachment", "q7Importance", "q8Concern"
+  ];
+
+  function surveyDraftStorageKey(){
+    const id = String(state.research_id || "").trim();
+    return id ? SURVEY_DRAFT_STORAGE_PREFIX + id : "";
+  }
+
+  function saveSurveyDraft(){
+    const key = surveyDraftStorageKey();
+    if(!key || state.mode !== "research" || state.completed_survey || !root.querySelector(".surveyCard")) return;
+    const fields = {};
+    for(const id of SURVEY_DRAFT_FIELD_IDS){
+      const input = $(id);
+      if(input) fields[id] = String(input.value || "");
+    }
+    const draft = {
+      version:1,
+      research_id:state.research_id,
+      saved_at:new Date().toISOString(),
+      fields,
+      q4_changes:checkedValues("q4_changes")
+    };
+    try{ localStorage.setItem(key, JSON.stringify(draft)); }catch(e){
+      // 容量不足・プライベートモードなどで保存できなくても回答は続けられます。
+    }
+  }
+
+  function restoreSurveyDraft(){
+    const key = surveyDraftStorageKey();
+    if(!key || state.completed_survey) return false;
+    try{
+      const raw = localStorage.getItem(key);
+      if(!raw) return false;
+      const draft = JSON.parse(raw);
+      if(draft.version !== 1 || draft.research_id !== state.research_id) return false;
+      const fields = draft.fields || {};
+      for(const id of SURVEY_DRAFT_FIELD_IDS){
+        const input = $(id);
+        if(input && typeof fields[id] === "string") input.value = fields[id];
+      }
+      const selected = new Set(Array.isArray(draft.q4_changes) ? draft.q4_changes : []);
+      document.querySelectorAll('input[name="q4_changes"]').forEach(box => {
+        box.checked = selected.has(box.value);
+      });
+      return true;
+    }catch(e){ return false; }
+  }
+
+  function clearSurveyDraft(){
+    const key = surveyDraftStorageKey();
+    if(key){try{ localStorage.removeItem(key); }catch(e){}}
+  }
+
+  function surveyDraftNotice(){
+    if(L() === "en") return "Answers are saved automatically on this device while you fill out the survey. The draft is removed after submission.";
+    if(L() === "zh-CN") return "填写时，回答会自动保存在本设备上。提交后，草稿将被删除。";
+    return "入力内容はこの端末に自動保存されます。途中で閉じても再開でき、送信すると下書きは削除されます。";
+  }
+
+  function optionalDemographicsNotice(){
+    if(L() === "en") return "Age and gender are optional. If entered, age must be 18 or older.";
+    if(L() === "zh-CN") return "年龄与性别均为选填。如果填写年龄，请填写18岁以上。";
+    return "年齢・性別の回答は任意です。年齢を入力する場合は18歳以上の数字を入力してください。";
+  }
+
   function renderSurvey(){
     if(state.mode === "research" && !researchFiveDayCareComplete()){
       const missing=[1,2,3,4,5].filter(day=>!researchDayHasSubstantiveCare(day));
@@ -5399,9 +5472,11 @@
     const st=surveyText();
     root.innerHTML=`<section class="card surveyCard">
       <h2>${esc(st.title)}</h2><p class="small">${esc(st.lead)}</p>
+      <p class="small" aria-live="polite">${esc(surveyDraftNotice())}</p>
       <h3>${esc(st.sectionA)}</h3>
-      <label for="surveyAge">${esc(st.age)}</label><input id="surveyAge" type="number" inputmode="numeric" min="18" max="120" step="1" placeholder="${esc(st.agePh)}" required>
-      <label for="surveyGender">${esc(st.gender)}</label><select id="surveyGender" required><option value="">${esc(st.select)}</option>${Object.entries(st.genderOptions).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}</select>
+      <p class="small">${esc(optionalDemographicsNotice())}</p>
+      <label for="surveyAge">${esc(st.age)}</label><input id="surveyAge" type="number" inputmode="numeric" min="18" max="120" step="1" placeholder="${esc(st.agePh)}">
+      <label for="surveyGender">${esc(st.gender)}</label><select id="surveyGender"><option value="">${esc(st.select)}</option>${Object.entries(st.genderOptions).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}</select>
       <h3 style="margin-top:22px">${esc(st.sectionB)}</h3>
       ${renderLikertSelect("q1Identity",st.q1)}
       <label for="q1Replaced">${esc(st.q1sub)}</label><select id="q1Replaced" required><option value="">${esc(st.select)}</option>${Object.entries(st.replacedOptions).map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("")}</select>
@@ -5442,6 +5517,17 @@
       $("q5Other").classList.toggle("hidden",!selected);
       if(!selected) $("q5Other").value="";
     });
+    // 入力途中の回答を復元してから、選択状況に応じて補助欄を表示します。
+    restoreSurveyDraft();
+    updateQ4Other();
+    const q5IsOther = $("q5MostImportant").value === "other";
+    $("q5Other").classList.toggle("hidden", !q5IsOther);
+    if(!q5IsOther) $("q5Other").value = "";
+
+    // 文字入力・選択のたびに即保存。オフラインでも同じ端末内に残ります。
+    const card = root.querySelector(".surveyCard");
+    card.addEventListener("input", saveSurveyDraft);
+    card.addEventListener("change", saveSurveyDraft);
     $("submitSurveyBtn").addEventListener("click",submitSurvey);
   }
 
@@ -5454,9 +5540,12 @@
 
   function validateSurvey(){
     const st=surveyText();
-    const age=Number($("surveyAge")?.value||0);
-    if(!Number.isInteger(age)||age<18||age>120){alert(st.ageError);return false;}
-    if(!$("surveyGender")?.value || !$("q1Identity")?.value || !$("q1Replaced")?.value ||
+    const ageText = String($("surveyAge")?.value || "").trim();
+    if(ageText){
+      const age = Number(ageText);
+      if(!Number.isInteger(age) || age < 18 || age > 120){alert(st.ageError);return false;}
+    }
+    if(!$("q1Identity")?.value || !$("q1Replaced")?.value ||
        !$("q2Reason")?.value.trim() || !$("q3ChangeAwareness")?.value ||
        !$("q5MostImportant")?.value || !$("q6Attachment")?.value ||
        !$("q7Importance")?.value || !$("q8Concern")?.value){alert(st.missing);return false;}
@@ -5480,7 +5569,8 @@
     const concern=Number($("q8Concern").value);
     state.survey={
       survey_version:"2026-10-11_docx_Q1toQ8",
-      age:Number($("surveyAge").value),gender:$("surveyGender").value,
+      age:$("surveyAge").value.trim() ? Number($("surveyAge").value) : null,
+      gender:$("surveyGender").value || "",
       q1_identity:q1Identity,q1_replaced_yesno:q1Replaced,
       q2_reason:$("q2Reason").value.trim(),q3_change_awareness:$("q3ChangeAwareness").value,
       q4_changed_aspects:q4Changes,q4_other:q4Changes.includes("other")?$("q4Other").value.trim():"",
@@ -5498,6 +5588,7 @@
     state.reward_eligible=true;
     state.screen="result";
     saveState();
+    clearSurveyDraft(); // 正式送信が確定したので、この端末の下書きを削除します。
     logEvent("survey_submit",{
       survey:state.survey,logs:state.logs,
       research_day_care:{...ensureResearchDayCareTracking()},
@@ -6826,9 +6917,15 @@
   setTimeout(updateCareAttentionIndicator, 0);
 
   // 画面を閉じる・バックグラウンドへ移る直前にも、可能な範囲で最新状態を送ります。
-  window.addEventListener("pagehide", () => { sendStateBackup("pagehide", true); });
+  window.addEventListener("pagehide", () => {
+    saveSurveyDraft();
+    sendStateBackup("pagehide", true);
+  });
   document.addEventListener("visibilitychange", () => {
-    if(document.visibilityState === "hidden") sendStateBackup("visibility_hidden", true);
+    if(document.visibilityState === "hidden"){
+      saveSurveyDraft();
+      sendStateBackup("visibility_hidden", true);
+    }
   });
 
   if ("serviceWorker" in navigator) {
