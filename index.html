@@ -997,7 +997,7 @@
        名前入力・手紙・1日のお世話開始／終了
        既存画像をそのまま使い、文章や名前はHTMLで表示します。
        =========================================================== */
-    .namePetPreview{
+.namePetPreview{
       margin:8px 0 14px;
       padding:8px 8px 2px;
       border-radius:26px;
@@ -1258,7 +1258,11 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261012-v35.8.1-lottery-notice-short",
+    APP_VERSION: "osewa-20261013-v35.9-worker-connected-test",
+    // 接続確認用の有効設定。公開中の index.html をこのテスト版で上書きしないこと。
+    LOTTERY_IMMEDIATE_ENABLED: true,
+    // 新しく作る抽選専用Workerの公開URL。既存の LOG_ENDPOINT は絶対に変更しない。
+    LOTTERY_API_ENDPOINT: "https://idealpaw-immediate-prize.ipaw-research26.workers.dev",
     BACKUP_SCHEMA_VERSION: 1,
     BACKUP_DEBOUNCE_MS: 1800,
     // 研究ログはCloudflare Worker経由で保存します。
@@ -1405,29 +1409,30 @@
   };
 
   // ===========================================================
-  // 抽選について（画面の案内のみ）。当選者はこのHTMLでは絶対に選びません。
-  // 「50件の有効な最終回答」ごとにサーバー上で1人を抽選します。
+  // 参加案内の文言はご指定により維持しています。
+  // 注意：サーバー側の「50番目を固定当選」はランダム抽選ではありません。
+  // 公開前に参加案内と実施方法を一致させ、研究倫理上の変更承認を確認してください。
   // ===========================================================
   const LOTTERY_TEXT = {
     ja:{
-      title:"Amazonギフトカード抽選のご案内",
-      notice:"5日間のお世話を終え、最後のアンケートまで回答した方が対象です。有効回答が50名集まるごとに、その50名の中から1名を抽選します。",
-      privacy:"このゲームやアンケートにはメールアドレスなどの連絡先を入力しないでください。当選確認・受取方法は研究者が別途案内します。",
+      title:"🎁 プレゼントについて",
+      notice:"5日間のお世話とアンケートを完了すると、抽選でAmazonギフトカードまたはスターバックス カード（各3,000円分）が当たります。",
+      privacy:"当選者にのみお知らせします。",
       ticketTitle:"抽選照合コード（控え）",
       ticketHelp:"このコードを保存してください。抽選結果の確認に使うための控えです。この画面に「当選」と表示されることはありません。",
       copy:"コードをコピー",copied:"コピーしました"
     },
     en:{
-      title:"Amazon Gift Card Drawing",
-      notice:"Participants who complete all five days of care and the final survey are eligible. For every 50 valid responses received, one winner is drawn at random from those 50 participants.",
-      privacy:"Do not enter an email address or other contact details into this game or survey. The researcher will provide separate instructions for checking results and claiming prizes.",
+      title:"🎁 About the prizes",
+      notice:"Complete five days of care and the final survey for a chance to win a ¥3,000 Amazon Gift Card or Starbucks Card.",
+      privacy:"Only winners will be notified.",
       ticketTitle:"Drawing reference code",ticketHelp:"Save this code to check the drawing outcome later. No win status is shown on this screen.",
       copy:"Copy code",copied:"Copied"
     },
     "zh-CN":{
-      title:"亚马逊礼品卡抽奖说明",
-      notice:"完成五天照护并提交最终问卷的参与者可以参加抽奖。每累计50份有效回答，就从这50名参与者中随机抽出1人。",
-      privacy:"请勿在游戏或问卷中填写邮箱或其他联系方式。研究人员将另行说明确认结果和领取奖品的方法。",
+      title:"🎁 关于奖品",
+      notice:"完成五天照护和最终问卷，即有机会获得价值3,000日元的亚马逊礼品卡或星巴克卡。",
+      privacy:"仅通知中奖者。",
       ticketTitle:"抽奖核对代码",ticketHelp:"请保存此代码，供日后核对抽奖结果。此页面不会显示是否中奖。",
       copy:"复制代码",copied:"已复制"
     }
@@ -1442,6 +1447,7 @@
     return `IP-${raw.slice(0,4)}-${raw.slice(4,8)}-${raw.slice(8,12)}`;
   }
   function lotteryTicketHtml(){
+    if(CONFIG.LOTTERY_IMMEDIATE_ENABLED) return ""; // 抽選結果画面で当落を即時表示する
     if(!state.completed_survey || !state.lottery_ticket_code) return "";
     return `<div class="lotteryTicket">
       <strong>${esc(lotteryText("ticketTitle"))}</strong>
@@ -1462,6 +1468,110 @@
         window.prompt(lotteryText("copy"), state.lottery_ticket_code);
       }
     });
+  }
+
+  // アンケート後の特典結果画面（メールアドレスは研究ログ・localStorageに記録しない）
+  const IMMEDIATE_PRIZE_TEXT={
+    ja:{title:"プレゼント当選のお知らせ",checking:"抽選結果を確認しています…",pending:"回答の登録を確認しています。少しお待ちください。",failure:"まだ結果を確認できません。通信を確認して、もう一度お試しください。",retry:"結果をもう一度確認",win:"おめでとうございます！当選です！",lose:"ありがとうございました",loseHelp:"5日間のお世話とアンケートへのご協力、ありがとうございました。",claimHelp:"プレゼントの送付先メールアドレスを登録してください。研究アンケートとは別に、賞品送付のためだけに保管します。",email:"受取用メールアドレス",emailPlace:"example@example.com",submit:"メールアドレスを送信",submitting:"登録しています…",registered:"メールアドレスを登録しました。プレゼントは後日お送りします。",emailError:"有効なメールアドレスを入力してください。",emailFailed:"送信できませんでした。通信を確認してもう一度お試しください。",card:"相棒診断カードを見る",skip:"受取を登録せず診断カードへ",skipNote:"メール登録をしない場合はプレゼントをお送りできません。",later:"当選した方のメール登録へ戻る"},
+    en:{title:"Prize winner notification",checking:"Checking the result…",pending:"Waiting for the survey to be registered. Please wait.",failure:"We could not verify the result. Check your connection and retry.",retry:"Check again",win:"Congratulations! You won!",lose:"Thank you",loseHelp:"Thank you for five days of care and for completing the survey.",claimHelp:"Enter a delivery email address. This is stored separately from research responses and used only to send the prize.",email:"Email for prize delivery",emailPlace:"example@example.com",submit:"Submit email",submitting:"Registering…",registered:"Your email was recorded. Your prize will be sent later.",emailError:"Enter a valid email address.",emailFailed:"Could not register your email. Please retry.",card:"View companion card",skip:"View card without registering",skipNote:"Without an email address, we cannot send your gift card.",later:"Return to prize registration"},
+    "zh-CN":{title:"奖品中奖通知",checking:"正在确认结果…",pending:"正在确认问卷已记录，请稍候。",failure:"暂时无法确认结果，请检查网络并重试。",retry:"重新确认结果",win:"恭喜！你中奖了！",lose:"感谢参与",loseHelp:"感谢您完成五天照护及最终问卷。",claimHelp:"请输入礼品卡收取邮箱。邮箱单独保存，仅用于发送奖品。",email:"领取用邮箱",emailPlace:"example@example.com",submit:"提交邮箱",submitting:"正在登记…",registered:"邮箱登记成功。礼品卡将在稍后发送。",emailError:"请输入有效邮箱。",emailFailed:"无法登记邮箱，请重试。",card:"查看伙伴诊断卡",skip:"不登记邮箱，查看诊断卡",skipNote:"没有邮箱将无法寄送礼品卡。",later:"返回登记领奖邮箱"}
+  };
+  function ipText(key){return (IMMEDIATE_PRIZE_TEXT[L()]||IMMEDIATE_PRIZE_TEXT.ja)[key]||IMMEDIATE_PRIZE_TEXT.ja[key];}
+  let immediateRequestInFlight=false;
+  let immediateStatusAttempts=0;
+  let immediateLastError=false;
+  function immediateApiReady(){return CONFIG.LOTTERY_IMMEDIATE_ENABLED && /^https:\/\//.test(String(CONFIG.LOTTERY_API_ENDPOINT||""));}
+  async function immediatePrizeRequest(action,email){
+    if(!immediateApiReady())throw Error("lottery_not_configured");
+    const req={action,research_id:state.research_id,lottery_ticket_code:state.lottery_ticket_code};
+    if(action==="claim")req.email=email;
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),15000);
+    try{
+      const resp=await fetch(CONFIG.LOTTERY_API_ENDPOINT,{method:"POST",mode:"cors",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(req),cache:"no-store",signal:controller.signal});
+      if(!resp.ok)throw Error("api_http_"+resp.status);
+      const value=await resp.json();
+      if(!value||value.ok!==true)throw Error(value?.code||"api_error");
+      return value;
+    }finally{clearTimeout(timer);}
+  }
+  async function checkImmediateResult(){
+    if(immediateRequestInFlight || state.screen!=="lottery" || !immediateApiReady())return;
+    immediateRequestInFlight=true;
+    immediateStatusAttempts++;
+    try{
+      const response=await immediatePrizeRequest("status");
+      immediateLastError=false;
+      if(["win","lose"].includes(response.status)){
+        state.lottery_result_status=response.status;
+        if(response.status==="win")state.lottery_contact_submitted=!!response.contact_registered;
+        saveState();
+      }
+    }catch(_error){immediateLastError=true;}
+    finally{
+      immediateRequestInFlight=false;
+      if(state.screen==="lottery")renderLotteryResult();
+    }
+  }
+  async function submitImmediatePrizeEmail(){
+    if(immediateRequestInFlight||state.screen!=="lottery"||state.lottery_result_status!=="win")return;
+    const el=$("immediatePrizeEmail");
+    const email=String(el?.value||"").trim();
+    const msg=$("immediatePrizeMessage");
+    if(!email || email.length>254 || /\s/.test(email) || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+      if(msg)msg.textContent=ipText("emailError");return;
+    }
+    immediateRequestInFlight=true;
+    const btn=$("immediatePrizeSubmit");
+    if(btn){btn.disabled=true;btn.textContent=ipText("submitting");}
+    try{
+      const response=await immediatePrizeRequest("claim",email);
+      if(response.status!=="win"||!response.contact_registered)throw Error("not_confirmed");
+      // 【重要】メール文字列は端末state・研究ログに一切保存しない。
+      state.lottery_contact_submitted=true;
+      saveState();
+      // メール登録成功後は追加操作不要で、相棒カードへ移動する。
+      // 登録に失敗した場合は catch に入り、入力画面に留まる。
+      if(state.screen==="lottery")setScreen("result");
+    }catch(_error){
+      if(btn){btn.disabled=false;btn.textContent=ipText("submit");}
+      if(msg)msg.textContent=ipText("emailFailed");
+    }finally{immediateRequestInFlight=false;}
+  }
+  function renderLotteryResult(){
+    if(!CONFIG.LOTTERY_IMMEDIATE_ENABLED){state.screen="result";saveState();return renderResult();}
+    if(!state.completed_survey){state.screen="survey";saveState();return renderSurvey();}
+    const status=state.lottery_result_status||"pending";
+    const ready=immediateApiReady();
+    let content="";
+    if(status==="lose"){
+      // 落選や当落結果の言葉は出さず、感謝だけを伝える。
+      content=`<h2>${esc(ipText("lose"))}</h2><p>${esc(ipText("loseHelp"))}</p>
+        <button type="button" id="lotteryNextBtn" class="wide">${esc(ipText("card"))}</button>`;
+    }else if(status==="win"){
+      content=`<h2>${esc(ipText("win"))}</h2>`+
+        (state.lottery_contact_submitted
+        ? `<p>${esc(ipText("registered"))}</p>`
+        : `<p>${esc(ipText("claimHelp"))}</p><label for="immediatePrizeEmail">${esc(ipText("email"))}</label>
+           <input id="immediatePrizeEmail" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="${esc(ipText("emailPlace"))}"/>
+           <p class="small" id="immediatePrizeMessage" role="status"></p>
+           <button type="button" id="immediatePrizeSubmit" class="wide">${esc(ipText("submit"))}</button>
+           <p class="small">${esc(ipText("skipNote"))}</p>`)+
+        `<button type="button" id="lotteryNextBtn" class="secondary wide" style="margin-top:14px">${esc(state.lottery_contact_submitted?ipText("card"):ipText("skip"))}</button>`;
+    }else{
+      content=`<h2>${esc(ipText("checking"))}</h2><p class="small" role="status">${esc(!ready||immediateLastError||immediateStatusAttempts>=12?ipText("failure"):ipText("pending"))}</p>
+        <button type="button" id="lotteryRetryBtn" class="secondary wide">${esc(ipText("retry"))}</button>`;
+    }
+    // 結果の見出しは当選者だけ。落選者に「抽選結果」は表示しない。
+    const prizeHeader=status==="win"?`<h2>${esc(ipText("title"))}</h2>`:"";
+    root.innerHTML=`<section class="card">${prizeHeader}${content}</section>`;
+    if($("lotteryRetryBtn"))$("lotteryRetryBtn").addEventListener("click",()=>{immediateStatusAttempts=0;immediateLastError=false;checkImmediateResult();});
+    if($("immediatePrizeSubmit"))$("immediatePrizeSubmit").addEventListener("click",submitImmediatePrizeEmail);
+    if($("lotteryNextBtn"))$("lotteryNextBtn").addEventListener("click",()=>setScreen("result"));
+    if(status==="pending" && ready && immediateStatusAttempts<12 && !immediateRequestInFlight){
+      setTimeout(()=>{if(state.screen==="lottery"&&state.lottery_result_status==="pending")checkImmediateResult();},immediateStatusAttempts?2200:900);
+    }
   }
 
   const TRANSITION_TEXT = {
@@ -1892,7 +2002,7 @@
       },
       "en": {
         "home": [
-          "You came properly, pen.",
+"You came properly, pen.",
           "Let’s do things in order today, pen.",
           "I will not forget food time, pen.",
           "Slowly is okay, pen."
@@ -2613,6 +2723,8 @@
       reward_eligible:false,
       lottery_ticket_code:"",
       lottery_joined_at:"",
+      lottery_result_status:"pending",
+      lottery_contact_submitted:false,
       completed_survey:false,
       survey_auto_opened_at:"",
       logs:{visits:0, feed:0, outing:0, pet:0, clean:0, look:0, actions_total:0},
@@ -2721,7 +2833,7 @@
       "return_started_at","return_completed","return_completed_at","name_cue_days",
       "mode","research_day_care","research_completion_status","research_completed_at",
       "research_incomplete_at","research_incomplete_reason","research_missing_days","reward_eligible",
-      "completed_survey","lottery_ticket_code","lottery_joined_at","survey_auto_opened_at","debrief_shown_at","logs","free_logs","zukan",
+      "completed_survey","lottery_ticket_code","lottery_joined_at","lottery_result_status","lottery_contact_submitted","survey_auto_opened_at","debrief_shown_at","logs","free_logs","zukan",
       "tips_shown","tips_logged","screen"
     ];
     const snapshot = {};
@@ -2890,7 +3002,7 @@
       ? state.research_day_care
       : {};
     const merged = emptyResearchDayCare();
-    for(let day=1; day<=5; day++){
+for(let day=1; day<=5; day++){
       merged[String(day)] = Math.max(0, Number(current[String(day)] || 0));
     }
 
@@ -3611,6 +3723,7 @@
     if(s==="returning") return renderReturning();
     if(s==="game") return renderGame();
     if(s==="survey") return renderSurvey();
+    if(s==="lottery") return renderLotteryResult();
     if(s==="result") return renderResult();
     if(s==="incomplete") return renderResearchIncomplete();
     if(s==="zukan") return renderZukanCollection();
@@ -3889,7 +4002,7 @@
       state.language = $("language").value || "ja";
       state.player_name = name;
       state.start_time = "";
-      saveState();
+saveState();
       setScreen("consent");
     });
   }
@@ -3902,7 +4015,6 @@
         <p>${esc(t("consentP2"))}</p>
         <p>${esc(t("consentP3"))}</p>
         <div class="notice small">${esc(t("consentNotice"))}</div>
-        ${lotteryNoticeHtml()}
         <label class="checkline"><input id="ageCheck" type="checkbox">${esc(t("check1"))}</label>
         <label class="checkline"><input id="privacyCheck" type="checkbox">${esc(t("check2"))}</label>
         <div class="row">
@@ -4888,8 +5000,7 @@
     return template.replaceAll("{user}",playerCallName() || predictionText("fallbackUser"))
       .replaceAll("{pet}",currentPetDisplayName());
   }
-
-  // C4の「今聞き直した名前」は過去を覚えている証拠にはしない。
+// C4の「今聞き直した名前」は過去を覚えている証拠にはしない。
   // 名前の再確認は4日目以降に一度だけ。入力欄を設けず、新たな個人情報は収集しない。
   const C4_NAME_TEXT = {
     ja:{title:"あなたの名前は？",desc:"キャラクターは、あなたの呼び名をたずねています。",answer:"{user}と呼んで",skip:"答えたくない",after:"{user}、よろしくね。"},
@@ -5663,7 +5774,9 @@
     state.research_completion_status="survey_complete";
     state.research_completed_at=state.research_completed_at||new Date().toISOString();
     state.reward_eligible=true;
-    state.screen="result";
+    state.lottery_result_status="pending";
+    state.lottery_contact_submitted=false;
+    state.screen=CONFIG.LOTTERY_IMMEDIATE_ENABLED?"lottery":"result";
     saveState();
     clearSurveyDraft(); // 正式送信が確定したので、この端末の下書きを削除します。
     logEvent("survey_submit",{
@@ -5672,13 +5785,14 @@
       five_day_care_complete:true,reward_eligible:true,
       lottery_ticket_code:state.lottery_ticket_code,
       lottery_joined_at:state.lottery_joined_at,
-      lottery_policy:"one_random_winner_per_50_valid_surveys",
+      lottery_policy:CONFIG.LOTTERY_IMMEDIATE_ENABLED ? "every_50th_valid_survey" : "one_random_winner_per_50_valid_surveys",
       lottery_group_size:50,
       lottery_auto_send_gift:false,
       care_meters_total:{...state.care_meters_total},full_meter_count:state.full_meter_count,
       source:"embedded_final_survey_2026-10-11_docx"
     });
-    renderResult();
+    if(CONFIG.LOTTERY_IMMEDIATE_ENABLED)renderLotteryResult();
+    else renderResult();
   }
 
   const PET_ZUKAN_CARDS = [
@@ -5886,7 +6000,7 @@
           ? "根据你到目前为止的照护日志，显示这张角色卡片。"
           : "ここまでのお世話ログをもとに、キャラクターカードを表示しています。")
       : (lang === "en"
-        ? "Selected as a character card using your care log and final survey answers."
+? "Selected as a character card using your care log and final survey answers."
         : lang === "zh-CN"
           ? "根据你的照护日志和最后问卷回答，显示这张角色卡片。"
           : "5日間のお世話ログと最後のアンケート回答をもとに、キャラクターカードを表示しています。");
@@ -6687,6 +6801,8 @@
         <h2>${esc(t("thanks"))}</h2>
         <p>${esc(t("thanksText"))}</p>
         ${lotteryTicketHtml()}
+        ${CONFIG.LOTTERY_IMMEDIATE_ENABLED && state.lottery_result_status==="win" && !state.lottery_contact_submitted
+          ? `<button id="returnPrizeEmailBtn" type="button" class="secondary wide">${esc(ipText("later"))}</button>`:""}
         <div class="resultCard">
           <div class="pill">${esc(t("cardTitle"))}</div>
           <div class="zukanNo">PET ZUKAN No.${String(type.pet.no).padStart(2,"0")}</div>
@@ -6711,6 +6827,7 @@
     logDebriefShownOnce("after_survey_submit");
     bindShareButtons(type);
     bindLotteryTicketButton();
+    if($("returnPrizeEmailBtn"))$("returnPrizeEmailBtn").addEventListener("click",()=>setScreen("lottery"));
     $("continueFreeBtn").addEventListener("click", enterFreeMode);
     $("endBtn").addEventListener("click", () => { logEvent("end",{}); setScreen("end"); });
   }
@@ -6883,7 +7000,7 @@
       run:{ja:"ホーム画面に追加", en:"Add to home screen", "zh-CN":"添加到主屏幕"},
       close:{ja:"閉じる", en:"Close", "zh-CN":"关闭"},
       text:{ja:"このゲームをスマホのホーム画面にアイコンとして残せます。次回からアプリのように開けます。", en:"You can keep this game as an icon on your phone’s home screen and open it like an app next time.", "zh-CN":"可以把这个游戏作为图标保存到手机主屏幕，下次像应用一样打开。"},
-      android:{ja:"Android / Chrome の場合：このボタンで追加画面が出ます。出ない場合は、ブラウザ右上のメニューから「ホーム画面に追加」を選んでください。", en:"Android / Chrome: this button may open the install prompt. If it does not, open the browser menu and choose Add to Home screen.", "zh-CN":"Android / Chrome：这个按钮可能会打开添加提示。如果没有出现，请从浏览器菜单选择“添加到主屏幕”。"},
+android:{ja:"Android / Chrome の場合：このボタンで追加画面が出ます。出ない場合は、ブラウザ右上のメニューから「ホーム画面に追加」を選んでください。", en:"Android / Chrome: this button may open the install prompt. If it does not, open the browser menu and choose Add to Home screen.", "zh-CN":"Android / Chrome：这个按钮可能会打开添加提示。如果没有出现，请从浏览器菜单选择“添加到主屏幕”。"},
       ios:{ja:"iPhone / Safari の場合：下の共有ボタンを押して「ホーム画面に追加」を選んでください。iPhoneではWebページ側から自動で追加画面を出せません。", en:"iPhone / Safari: tap the Share button and choose Add to Home Screen. iPhone does not allow websites to open this prompt automatically.", "zh-CN":"iPhone / Safari：请点击分享按钮，然后选择“添加到主屏幕”。iPhone 不允许网页自动打开这个提示。"},
       done:{ja:"追加画面を開きました。", en:"Install prompt opened.", "zh-CN":"已打开添加提示。"},
       unavailable:{ja:"この端末では自動追加画面を開けません。説明に沿って、ブラウザのメニューから追加してください。", en:"This device cannot open the install prompt automatically. Please use the browser menu as described.", "zh-CN":"这台设备无法自动打开添加提示。请按照说明从浏览器菜单添加。"}
@@ -6938,7 +7055,10 @@
 
     syncLifeClock();
     if(!state.research_id){ state.screen = "intro"; saveState(); return renderIntro(); }
-    if(state.completed_survey && state.mode === "research"){ state.screen = "result"; saveState(); return renderResult(); }
+    if(state.completed_survey && state.mode === "research"){
+      if(CONFIG.LOTTERY_IMMEDIATE_ENABLED && state.screen==="lottery")return renderLotteryResult();
+      state.screen="result";saveState();return renderResult();
+    }
     if(state.mode === "research" && state.research_completion_status === "incomplete"){
       state.screen = "incomplete";
       saveState();
