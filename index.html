@@ -1258,10 +1258,10 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261013-v35.9-worker-connected-test",
-    // 接続確認用の有効設定。公開中の index.html をこのテスト版で上書きしないこと。
+    APP_VERSION: "osewa-20261013-v36.0",
+    // 通常版。抽選の当落は抽選専用Worker側で判定します。
     LOTTERY_IMMEDIATE_ENABLED: true,
-    // 新しく作る抽選専用Workerの公開URL。既存の LOG_ENDPOINT は絶対に変更しない。
+    // 抽選専用Workerの公開URL。研究ログ用LOG_ENDPOINTとは別に管理します。
     LOTTERY_API_ENDPOINT: "https://idealpaw-immediate-prize.ipaw-research26.workers.dev",
     BACKUP_SCHEMA_VERSION: 1,
     BACKUP_DEBOUNCE_MS: 1800,
@@ -1271,7 +1271,7 @@
     // 匿名の問い合わせ用Googleフォームです。
     // ここに書かれているのは共有用フォームURLで、フォーム所有者のメールアドレスではありません。
     CONTACT_FORM_URL: "https://docs.google.com/forms/d/e/1FAIpQLScNmjF0bQNR96cYyOMqh85goQT5JMitM0W6QG-0ksBk9KykXw/viewform",
-    // SNS共有カードに載せる公開用URL。空欄なら、今開いている公開URLを使います。
+    // SNS共有カードに載せる公開用URL。空欄なら公開中のHTTPS URLを自動取得します。
     PUBLIC_GAME_URL: "",
     HATCH_SECONDS: 30,
     ZUKAN_HEARTS_REQUIRED: 3,
@@ -1300,7 +1300,7 @@
       introText:"5日間、小さなデジタル存在のお世話をしながら、最後に感じたことをふりかえる研究用ゲームです。",
       langLabel:"表示言語", nameLabel:"呼ばれたい名前", namePh:"例：みー、M など。氏名は書かないでください",
       privacyNote:"本名、学校名、勤務先、連絡先など、個人がわかる情報は入力しないでください。",
-      timeLabel:"お世話を始める時間", timeNote:"指定した時間になると、プレゼントが届きます。すぐ試す場合は、今の時刻に近い時間で進められます。",
+      timeLabel:"お世話を始める時間", timeNote:"指定した時間になると、プレゼントが届きます。すぐ始めたい場合は、今の時刻に近い時間で進められます。",
       readStudy:"研究について読む", needName:"呼ばれたい名前を入力してください。本名でなくて大丈夫です。",
       consentTitle:"研究について", consentP1:"この研究では、ブラウザで遊べるお世話ゲームを通して、デジタルキャラクターとの関わり方を調べます。",
       consentP2:"ゲームでは、キャラクターにごはんをあげたり、なでたり、おでかけをしたりしながら、数日間かかわっていきます。その途中で、キャラクターの様子や反応に変化が感じられる場面があります。",
@@ -1326,10 +1326,10 @@
       noticed:"変わったと感じた", notNoticed:"特に変わったとは感じなかった", unsure:"わからない",
       reasonTitle:"同じ、または違うと感じた理由に近いものを選んでください。", reasons:{name:"名前",look:"見た目",personality:"反応や性格",memory:"過去に自分が世話をした記憶",feeling:"なんとなくの印象",action:"自分がしたお世話の内容"},
       qFree:"そう感じた理由を、短く書いてください。", freePh:"個人が分かる情報は書かないでください。", submit:"回答を送信する", missing:"未回答の項目があります。選択してから送信してください。",
-      thanks:"ありがとうございました", thanksText:"5日間のお世話とアンケートへの回答が終わりました。", cardTitle:"あなたにぴったりなキャラクターカード", cardNote:"このカードは研究条件を示すものではありません。5日間のお世話ログと最後のアンケート回答にもとづく、参加後のお楽しみ表示です。",
+      thanks:"ありがとうございました", thanksText:"5日間のお世話とアンケートへの回答が終わりました。", cardTitle:"あなたにぴったりな相棒カード", cardNote:"このカードは研究条件を示すものではありません。5日間のお世話ログと最後のアンケート回答にもとづく、参加後のお楽しみ表示です。",
       continueFree:"つづきのお世話をする", end:"終わる", endedTitle:"終了しました", endedText:"ご参加ありがとうございました。", closeWindow:"この画面を閉じてください。",
       freeGiftLead:"ここから先は「つづきのお世話」です。研究ログは送信されません。最初と同じように、プレゼントから新しいキャラクターが生まれます。",
-      zukanTitle:"キャラクターカード図鑑", zukanOpen:"図鑑を見る", zukanFind:"カードを探す", zukanBack:"お世話に戻る", zukanProgress:"集めたカード", zukanGot:"新しいカードを見つけました", zukanAlready:"もう少しで見つかりそう",
+      zukanTitle:"相棒カード図鑑", zukanOpen:"図鑑を見る", zukanFind:"カードを探す", zukanBack:"お世話に戻る", zukanProgress:"集めたカード", zukanGot:"新しいカードを見つけました", zukanAlready:"もう少しで見つかりそう",
       renameTitle:"名前をつけてください", renameHelp:"今日から表示する名前を入力してください。", renameSubmit:"決定する",
     },
     en:{
@@ -1337,7 +1337,7 @@
       introText:"This research game asks you to care for a small digital being for five days and then reflect on how you felt.",
       langLabel:"Language", nameLabel:"Name you would like to be called", namePh:"e.g., Mi, M. Do not write your real name.",
       privacyNote:"Do not enter identifying information such as your real name, school, workplace, or contact details.",
-      timeLabel:"Care start time", timeNote:"A present will arrive at the selected time. For testing, choose a time close to now.",
+      timeLabel:"Care start time", timeNote:"A present will arrive at the selected time. To start soon, choose a time close to now.",
       readStudy:"Read about the study", needName:"Please enter the name you would like to be called. A nickname is fine.",
       consentTitle:"About this study", consentP1:"This study uses a browser-based care game to examine how people interact with a digital character.",
       consentP2:"In the game, you will care for the character for several days by feeding it, petting it, and going out together. During the game, you may notice changes in the character’s appearance or responses.",
@@ -1363,10 +1363,10 @@
       noticed:"I felt it had changed", notNoticed:"I did not particularly feel a change", unsure:"I am not sure",
       reasonTitle:"Choose the reasons closest to why you felt it was the same or different.", reasons:{name:"Name",look:"Appearance",personality:"Responses or personality",memory:"Memory of my past care",feeling:"Intuitive impression",action:"My own care actions"},
       qFree:"Briefly write why you felt that way.", freePh:"Do not write identifying information.", submit:"Submit answers", missing:"Some required items are unanswered. Please choose an answer.",
-      thanks:"Thank you", thanksText:"The five-day care game and final survey are complete.", cardTitle:"Your matching character card", cardNote:"This card does not show the research condition. It is a post-participation result based on your five-day care log and final survey answers.",
+      thanks:"Thank you", thanksText:"The five-day care game and final survey are complete.", cardTitle:"Your matching companion card", cardNote:"This card does not show the research condition. It is a post-participation result based on your five-day care log and final survey answers.",
       continueFree:"Continue caring", end:"Finish", endedTitle:"Finished", endedText:"Thank you for participating.", closeWindow:"You may close this screen.",
       freeGiftLead:"From here, this is Continued Care. No research logs will be sent. Like the beginning, a new character will be born from a present.",
-      zukanTitle:"Character Card Collection", zukanOpen:"Open collection", zukanFind:"Find a card", zukanBack:"Back to care", zukanProgress:"Cards collected", zukanGot:"You found a new card", zukanAlready:"Almost found one",
+      zukanTitle:"Companion Card Collection", zukanOpen:"Open collection", zukanFind:"Find a card", zukanBack:"Back to care", zukanProgress:"Cards collected", zukanGot:"You found a new card", zukanAlready:"Almost found one",
       renameTitle:"Give a name", renameHelp:"Enter the name to display from today.", renameSubmit:"OK",
     },
     "zh-CN":{
@@ -1374,7 +1374,7 @@
       introText:"这是一个研究用游戏。你会照护一个小小的数字存在五天，并在最后回顾自己的感受。",
       langLabel:"显示语言", nameLabel:"希望被称呼的名字", namePh:"例：小米、M。请不要写真实姓名。",
       privacyNote:"请不要输入真实姓名、学校名、工作单位、联系方式等可识别个人的信息。",
-      timeLabel:"照护开始时间", timeNote:"到了指定时间，礼物会送到。测试时可以选择接近现在的时间。",
+      timeLabel:"照护开始时间", timeNote:"到了指定时间，礼物会送到。如果想尽快开始，可以选择接近现在的时间。",
       readStudy:"阅读研究说明", needName:"请输入希望被称呼的名字。昵称即可。",
       consentTitle:"关于本研究", consentP1:"本研究通过浏览器中的照护游戏，了解人们如何与数字角色互动。",
       consentP2:"在游戏中，你会在几天里给角色喂食、抚摸它，或和它一起外出。过程中，你可能会感觉到角色的样子或反应发生变化。",
@@ -1400,7 +1400,7 @@
       noticed:"感觉变了", notNoticed:"没有特别感觉到变化", unsure:"不确定",
       reasonTitle:"请选择你觉得相同或不同的理由。", reasons:{name:"名字",look:"外观",personality:"反应或性格",memory:"自己曾经照护过的记忆",feeling:"直觉印象",action:"自己做过的照护内容"},
       qFree:"请简单写下你这样感受的理由。", freePh:"请不要写可识别个人的信息。", submit:"提交回答", missing:"还有未回答的项目。请先选择。",
-      thanks:"谢谢", thanksText:"五天的照护和最后问卷已经完成。", cardTitle:"适合你的角色卡片", cardNote:"这张卡片不表示研究条件。它是根据五天照护日志和最后问卷回答显示的参与后小结果。",
+      thanks:"谢谢", thanksText:"五天的照护和最后问卷已经完成。", cardTitle:"适合你的伙伴卡片", cardNote:"这张卡片不表示研究条件。它是根据五天照护日志和最后问卷回答显示的参与后小结果。",
       continueFree:"继续照护", end:"结束", endedTitle:"已结束", endedText:"感谢你的参加。", closeWindow:"请关闭这个画面。",
       freeGiftLead:"从这里开始是继续照护。不会发送研究日志。和最开始一样，会从礼物中诞生新的角色。",
       zukanTitle:"剪影图鉴", zukanOpen:"查看图鉴", zukanFind:"寻找剪影", zukanBack:"返回照护", zukanProgress:"已收集剪影", zukanGot:"发现了新的剪影", zukanAlready:"好像快找到了",
@@ -5796,60 +5796,60 @@ saveState();
   }
 
   const PET_ZUKAN_CARDS = [
-    {no:1, label:{ja:"メダカ",en:"Medaka fish","zh-CN":"青鳉鱼"}, type:{ja:"静かに見守る"}, message:{ja:"小さな変化を毎日そっと見守るキャラクターです。派手な反応は少なくても、続けて見るほど愛着が育ちます。"}, file:"01_medaka.png"},
-    {no:2, label:{ja:"金魚",en:"Goldfish","zh-CN":"金鱼"}, type:{ja:"静かに見守る"}, message:{ja:"ゆったり泳ぐ姿に癒されるキャラクターです。落ち着いて関わりたい人に合いそうです。"}, file:"02_kingyo.png"},
-    {no:3, label:{ja:"ベタ",en:"Betta","zh-CN":"斗鱼"}, type:{ja:"静かに見守る"}, message:{ja:"静かな時間の中に小さな華やかさをくれるキャラクターです。ひとりの時間も大切にしながら関係を育てたい人に合いそうです。"}, file:"03_beta.png"},
-    {no:4, label:{ja:"グッピー",en:"Guppy","zh-CN":"孔雀鱼"}, type:{ja:"変化を楽しむ"}, message:{ja:"小さな動きや変化を楽しませてくれるキャラクターです。毎日の違いを見つけるのが好きな人に合いそうです。"}, file:"04_guppy.png"},
-    {no:5, label:{ja:"ミナミヌマエビ",en:"Freshwater shrimp","zh-CN":"淡水虾"}, type:{ja:"観察する"}, message:{ja:"細かな動きに気づく楽しさがあるキャラクターです。小さな変化をじっくり見る人に合いそうです。"}, file:"05_minami_numaebi.png"},
-    {no:6, label:{ja:"カタツムリ",en:"Snail","zh-CN":"蜗牛"}, type:{ja:"ゆっくり寄りそう"}, message:{ja:"急がない時間をくれるキャラクターです。相手のペースを待ちながら関係を育てたい人に合いそうです。"}, file:"06_katatsumuri.png"},
-    {no:7, label:{ja:"オカヤドカリ",en:"Hermit crab","zh-CN":"寄居蟹"}, type:{ja:"小さな冒険"}, message:{ja:"小さな世界を探検する姿が楽しいキャラクターです。少しずつ新しい場所へ進みたい人に合いそうです。"}, file:"07_okayadokari.png"},
-    {no:8, label:{ja:"カブトムシ",en:"Rhinoceros beetle","zh-CN":"独角仙"}, type:{ja:"季節を楽しむ"}, message:{ja:"夏の元気を感じさせてくれるキャラクターです。短い時間でも濃く関わることを楽しめる人に合いそうです。"}, file:"08_kabutomushi.png"},
-    {no:9, label:{ja:"クワガタ",en:"Stag beetle","zh-CN":"锹形虫"}, type:{ja:"じっくり観察"}, message:{ja:"静かな強さを感じるキャラクターです。すぐに近づきすぎず、じっくり様子を見たい人に合いそうです。"}, file:"09_kuwagata.png"},
-    {no:10, label:{ja:"鈴虫",en:"Bell cricket","zh-CN":"铃虫"}, type:{ja:"音で寄りそう"}, message:{ja:"夜の時間を少し豊かにしてくれるキャラクターです。姿だけでなく、気配や雰囲気を大切にする人に合いそうです。"}, file:"10_suzumushi.png"},
-    {no:11, label:{ja:"ハムスター",en:"Hamster","zh-CN":"仓鼠"}, type:{ja:"かわいがる"}, message:{ja:"小さな動きに心がゆるむキャラクターです。こまめに見に行きたくなる人に合いそうです。"}, file:"11_hamster.png"},
-    {no:12, label:{ja:"マーモット",en:"Marmot","zh-CN":"旱獭"}, type:{ja:"やさしく関わる"}, message:{ja:"どっしりした安心感のあるキャラクターです。焦らず、そばで支える関わりが似合う人に合いそうです。"}, file:"12_marmot.png"},
-    {no:13, label:{ja:"うさぎ",en:"Rabbit","zh-CN":"兔子"}, type:{ja:"そっと甘える"}, message:{ja:"近づきすぎず、でもそばにいるキャラクターです。静かな信頼関係を育てたい人に合いそうです。"}, file:"13_usagi.png"},
-    {no:14, label:{ja:"文鳥",en:"Java sparrow","zh-CN":"文鸟"}, type:{ja:"信頼を育てる"}, message:{ja:"毎日の声かけに応えてくれるキャラクターです。少しずつ仲良くなる過程を楽しめる人に合いそうです。"}, file:"14_buncho.png"},
-    {no:15, label:{ja:"セキセイインコ",en:"Budgerigar","zh-CN":"虎皮鹦鹉"}, type:{ja:"会話を楽しむ"}, message:{ja:"小さな声やしぐさで気持ちを返してくれるキャラクターです。日々のやりとりを大切にしたい人に合いそうです。"}, file:"15_sekisei_inko.png"},
-    {no:16, label:{ja:"猫",en:"Cat","zh-CN":"猫"}, type:{ja:"距離感上手"}, message:{ja:"自由さと愛着の両方を大切にするキャラクターです。近づく時間と離れる時間の両方を楽しめる人に合いそうです。"}, file:"16_neko.png"},
-    {no:17, label:{ja:"犬",en:"Dog","zh-CN":"狗"}, type:{ja:"一緒に動く"}, message:{ja:"一緒に歩き、関わりを深く育てたいキャラクターです。反応が返ってくる関係を大切にする人に合いそうです。"}, file:"17_inu.png"},
-    {no:18, label:{ja:"リクガメ",en:"Tortoise","zh-CN":"陆龟"}, type:{ja:"長く見守る"}, message:{ja:"長い時間をかけて関係を育てるキャラクターです。急がず、続けることを大切にする人に合いそうです。"}, file:"18_rikugame.png"},
-    {no:19, label:{ja:"レオパ",en:"Leopard gecko","zh-CN":"豹纹守宫"}, type:{ja:"じっくり観察"}, message:{ja:"落ち着いた動きの中に個性が見えるキャラクターです。静かに観察しながら関係を深めたい人に合いそうです。"}, file:"19_leopard_gecko.png"},
-    {no:20, label:{ja:"フェレット",en:"Ferret","zh-CN":"雪貂"}, type:{ja:"遊び好き"}, message:{ja:"遊びながら関係を作りたい人に合うキャラクターです。予想外の動きやいたずらっぽさも楽しめそうです。"}, file:"20_ferret.png"},
-    {no:21, label:{ja:"チンチラ",en:"Chinchilla","zh-CN":"龙猫"}, type:{ja:"やわらかい距離感"}, message:{ja:"触れたい気持ちと相手のペースの両方が大切なキャラクターです。やさしく待てる人に合いそうです。"}, file:"21_chinchilla.png"},
-    {no:22, label:{ja:"ペンギン",en:"Penguin","zh-CN":"企鹅"}, type:{ja:"水族館で会う"}, message:{ja:"てくてく進む勇気をくれるキャラクターです。一歩ずつ前に進むことを楽しめる人に合いそうです。"}, file:"22_penguin.png"},
-    {no:23, label:{ja:"アザラシ",en:"Seal","zh-CN":"海豹"}, type:{ja:"水族館で会う"}, message:{ja:"のんびりした安心感をくれるキャラクターです。力を抜いて一緒に過ごしたい人に合いそうです。"}, file:"23_azarashi.png"},
-    {no:24, label:{ja:"イルカ",en:"Dolphin","zh-CN":"海豚"}, type:{ja:"水族館で会う"}, message:{ja:"軽やかに進む気持ちをくれるキャラクターです。遊び心と知的なやりとりを楽しみたい人に合いそうです。"}, file:"24_iruka.png"},
-    {no:25, label:{ja:"カワウソ",en:"Otter","zh-CN":"水獭"}, type:{ja:"動物園・水族館で会う"}, message:{ja:"遊び心いっぱいのキャラクターです。楽しいことを見つけながら関係を育てたい人に合いそうです。"}, file:"25_kawauso.png"},
-    {no:26, label:{ja:"レッサーパンダ",en:"Red panda","zh-CN":"小熊猫"}, type:{ja:"動物園で会う"}, message:{ja:"かわいさとマイペースさのキャラクターです。ゆるやかな関係を大切にしたい人に合いそうです。"}, file:"26_lesser_panda.png"},
-    {no:27, label:{ja:"カピバラ",en:"Capybara","zh-CN":"水豚"}, type:{ja:"ほっと落ち着く"}, message:{ja:"穏やかな空気をくれるキャラクターです。無理なく自然体で関わりたい人に合いそうです。"}, file:"27_capybara.png"},
-    {no:28, label:{ja:"ライオン",en:"Lion","zh-CN":"狮子"}, type:{ja:"動物園で会う"}, message:{ja:"強さと誇りをくれるキャラクターです。大切なものを守る気持ちを持つ人に合いそうです。"}, file:"28_lion.png"},
-    {no:29, label:{ja:"ゾウ",en:"Elephant","zh-CN":"大象"}, type:{ja:"動物園で会う"}, message:{ja:"大きな安心感をくれるキャラクターです。ゆっくり深く覚えていく関係を大切にする人に合いそうです。"}, file:"29_zou.png"},
-    {no:30, label:{ja:"キリン",en:"Giraffe","zh-CN":"长颈鹿"}, type:{ja:"動物園で会う"}, message:{ja:"少し高い視点をくれるキャラクターです。ものごとを遠くから見て考えたい人に合いそうです。"}, file:"30_kirin.png"},
-    {no:31, label:{ja:"ハリネズミ",en:"Hedgehog","zh-CN":"刺猬"}, type:{ja:"そっと見守る"}, message:{ja:"相手のペースを大切にする関わりが似合うキャラクターです。無理に近づかず、少しずつ信頼を育てたい人に合いそうです。"}, file:"31_harinezumi.png"},
-    {no:32, label:{ja:"デグー",en:"Degu","zh-CN":"智利松鼠"}, type:{ja:"反応を楽しむ"}, message:{ja:"小さな反応を返してくれるキャラクターです。話しかけたり様子を見たりするのが好きな人に合いそうです。"}, file:"32_degu.png"},
-    {no:33, label:{ja:"ウーパールーパー",en:"Axolotl","zh-CN":"美西螈"}, type:{ja:"ふしぎを楽しむ"}, message:{ja:"不思議な見た目と静かな存在感のあるキャラクターです。ちょっと変わった魅力を大切にする人に合いそうです。"}, file:"33_wooper_looper.png"},
-    {no:34, label:{ja:"イモリ",en:"Newt","zh-CN":"蝾螈"}, type:{ja:"じっくり観察"}, message:{ja:"小さな世界を静かに生きるキャラクターです。目立たない変化にも気づける人に合いそうです。"}, file:"34_imori.png"},
-    {no:35, label:{ja:"カエル",en:"Frog","zh-CN":"青蛙"}, type:{ja:"小さな変化を楽しむ"}, message:{ja:"ぴょんと動くたびに楽しいキャラクターです。変化の瞬間を楽しみたい人に合いそうです。"}, file:"35_kaeru.png"},
-    {no:36, label:{ja:"コーンスネーク",en:"Corn snake","zh-CN":"玉米蛇"}, type:{ja:"静かに寄りそう"}, message:{ja:"落ち着いた動きが魅力のキャラクターです。こわがらず、よく見て理解しようとする人に合いそうです。"}, file:"36_corn_snake.png"},
-    {no:37, label:{ja:"ニワトリ",en:"Chicken","zh-CN":"鸡"}, type:{ja:"朝を元気にする"}, message:{ja:"毎日にリズムをくれるキャラクターです。生活の中で自然に関わるのが好きな人に合いそうです。"}, file:"37_niwatori.png"},
-    {no:38, label:{ja:"ロバ",en:"Donkey","zh-CN":"驴"}, type:{ja:"ゆっくり支える"}, message:{ja:"焦らず進む気持ちをくれるキャラクターです。地道に続ける関係を大切にする人に合いそうです。"}, file:"38_roba.png"},
-    {no:39, label:{ja:"ヤギ",en:"Goat","zh-CN":"山羊"}, type:{ja:"のびのび触れ合う"}, message:{ja:"好奇心いっぱいのキャラクターです。気になることに近づいてみる力を持つ人に合いそうです。"}, file:"39_yagi.png"},
-    {no:40, label:{ja:"ヒツジ",en:"Sheep","zh-CN":"绵羊"}, type:{ja:"ほっと落ち着く"}, message:{ja:"ふわっと安心感をくれるキャラクターです。穏やかな空気を大切にしたい人に合いそうです。"}, file:"40_hitsuji.png"},
-    {no:41, label:{ja:"アルパカ",en:"Alpaca","zh-CN":"羊驼"}, type:{ja:"牧場で会う"}, message:{ja:"ふしぎな愛嬌のあるキャラクターです。少しユーモアのある関係を楽しみたい人に合いそうです。"}, file:"41_alpaca.png"},
-    {no:42, label:{ja:"ミーアキャット",en:"Meerkat","zh-CN":"狐獴"}, type:{ja:"動物園で会う"}, message:{ja:"周りを見渡す勇気をくれるキャラクターです。小さな変化に早く気づく人に合いそうです。"}, file:"42_meerkat.png"},
-    {no:43, label:{ja:"フクロウ",en:"Owl","zh-CN":"猫头鹰"}, type:{ja:"動物園で会う"}, message:{ja:"静かなまなざしを感じるキャラクターです。すぐに答えを出さず、よく見て考える人に合いそうです。"}, file:"43_fukurou.png"},
-    {no:44, label:{ja:"ラッコ",en:"Sea otter","zh-CN":"海獭"}, type:{ja:"水族館で会う"}, message:{ja:"ぷかぷかした姿に癒されるキャラクターです。安心できるものを大事に抱えていたい人に合いそうです。"}, file:"44_rakko.png"},
-    {no:45, label:{ja:"シロクマ",en:"Polar bear","zh-CN":"北极熊"}, type:{ja:"動物園で会う"}, message:{ja:"大きくて静かな力を感じるキャラクターです。ひとりでも進める強さを大切にする人に合いそうです。"}, file:"45_shirokuma.png"},
-    {no:46, label:{ja:"オオカミ",en:"Wolf","zh-CN":"狼"}, type:{ja:"静かな強さ"}, message:{ja:"群れと個の両方を大切にするキャラクターです。自分の意志を持ちながら、つながりも大事にする人に合いそうです。"}, file:"46_ookami.png"},
-    {no:47, label:{ja:"コアラ",en:"Koala","zh-CN":"考拉"}, type:{ja:"動物園で会う"}, message:{ja:"のんびり休む大切さを教えてくれるキャラクターです。がんばる時間と休む時間の両方を大切にする人に合いそうです。"}, file:"47_koala.png"},
-    {no:48, label:{ja:"パンダ",en:"Panda","zh-CN":"熊猫"}, type:{ja:"動物園で会う"}, message:{ja:"やさしい存在感で心をゆるめてくれるキャラクターです。見ているだけで安心できる関係を大切にする人に合いそうです。"}, file:"48_panda.png"},
-    {no:49, label:{ja:"カメレオン",en:"Chameleon","zh-CN":"变色龙"}, type:{ja:"変化を楽しむ"}, message:{ja:"状況に合わせて色を変えるように、柔らかく対応できるキャラクターです。変化を楽しめる人に合いそうです。"}, file:"49_chameleon.png"},
-    {no:50, label:{ja:"ナマケモノ",en:"Sloth","zh-CN":"树懒"}, type:{ja:"動物園で会う"}, message:{ja:"自分のペースを大切にしたい人に合うキャラクターです。ゆっくりでも続いていく関係を楽しめそうです。"}, file:"50_namakemono.png"}
+    {no:1, label:{ja:"メダカ",en:"Medaka fish","zh-CN":"青鳉鱼"}, type:{ja:"静かに見守る"}, message:{ja:"小さな変化を毎日そっと見守る相棒です。派手な反応は少なくても、続けて見るほど愛着が育ちます。"}, file:"01_medaka.png"},
+    {no:2, label:{ja:"金魚",en:"Goldfish","zh-CN":"金鱼"}, type:{ja:"静かに見守る"}, message:{ja:"ゆったり泳ぐ姿に癒される相棒です。落ち着いて関わりたい人に合いそうです。"}, file:"02_kingyo.png"},
+    {no:3, label:{ja:"ベタ",en:"Betta","zh-CN":"斗鱼"}, type:{ja:"静かに見守る"}, message:{ja:"静かな時間の中に小さな華やかさをくれる相棒です。ひとりの時間も大切にしながら関係を育てたい人に合いそうです。"}, file:"03_beta.png"},
+    {no:4, label:{ja:"グッピー",en:"Guppy","zh-CN":"孔雀鱼"}, type:{ja:"変化を楽しむ"}, message:{ja:"小さな動きや変化を楽しませてくれる相棒です。毎日の違いを見つけるのが好きな人に合いそうです。"}, file:"04_guppy.png"},
+    {no:5, label:{ja:"ミナミヌマエビ",en:"Freshwater shrimp","zh-CN":"淡水虾"}, type:{ja:"観察する"}, message:{ja:"細かな動きに気づく楽しさがある相棒です。小さな変化をじっくり見る人に合いそうです。"}, file:"05_minami_numaebi.png"},
+    {no:6, label:{ja:"カタツムリ",en:"Snail","zh-CN":"蜗牛"}, type:{ja:"ゆっくり寄りそう"}, message:{ja:"急がない時間をくれる相棒です。相手のペースを待ちながら関係を育てたい人に合いそうです。"}, file:"06_katatsumuri.png"},
+    {no:7, label:{ja:"オカヤドカリ",en:"Hermit crab","zh-CN":"寄居蟹"}, type:{ja:"小さな冒険"}, message:{ja:"小さな世界を探検する姿が楽しい相棒です。少しずつ新しい場所へ進みたい人に合いそうです。"}, file:"07_okayadokari.png"},
+    {no:8, label:{ja:"カブトムシ",en:"Rhinoceros beetle","zh-CN":"独角仙"}, type:{ja:"季節を楽しむ"}, message:{ja:"夏の元気を感じさせてくれる相棒です。短い時間でも濃く関わることを楽しめる人に合いそうです。"}, file:"08_kabutomushi.png"},
+    {no:9, label:{ja:"クワガタ",en:"Stag beetle","zh-CN":"锹形虫"}, type:{ja:"じっくり観察"}, message:{ja:"静かな強さを感じる相棒です。すぐに近づきすぎず、じっくり様子を見たい人に合いそうです。"}, file:"09_kuwagata.png"},
+    {no:10, label:{ja:"鈴虫",en:"Bell cricket","zh-CN":"铃虫"}, type:{ja:"音で寄りそう"}, message:{ja:"夜の時間を少し豊かにしてくれる相棒です。姿だけでなく、気配や雰囲気を大切にする人に合いそうです。"}, file:"10_suzumushi.png"},
+    {no:11, label:{ja:"ハムスター",en:"Hamster","zh-CN":"仓鼠"}, type:{ja:"かわいがる"}, message:{ja:"小さな動きに心がゆるむ相棒です。こまめに見に行きたくなる人に合いそうです。"}, file:"11_hamster.png"},
+    {no:12, label:{ja:"マーモット",en:"Marmot","zh-CN":"旱獭"}, type:{ja:"やさしく関わる"}, message:{ja:"どっしりした安心感のある相棒です。焦らず、そばで支える関わりが似合う人に合いそうです。"}, file:"12_marmot.png"},
+    {no:13, label:{ja:"うさぎ",en:"Rabbit","zh-CN":"兔子"}, type:{ja:"そっと甘える"}, message:{ja:"近づきすぎず、でもそばにいる相棒です。静かな信頼関係を育てたい人に合いそうです。"}, file:"13_usagi.png"},
+    {no:14, label:{ja:"文鳥",en:"Java sparrow","zh-CN":"文鸟"}, type:{ja:"信頼を育てる"}, message:{ja:"毎日の声かけに応えてくれる相棒です。少しずつ仲良くなる過程を楽しめる人に合いそうです。"}, file:"14_buncho.png"},
+    {no:15, label:{ja:"セキセイインコ",en:"Budgerigar","zh-CN":"虎皮鹦鹉"}, type:{ja:"会話を楽しむ"}, message:{ja:"小さな声やしぐさで気持ちを返してくれる相棒です。日々のやりとりを大切にしたい人に合いそうです。"}, file:"15_sekisei_inko.png"},
+    {no:16, label:{ja:"猫",en:"Cat","zh-CN":"猫"}, type:{ja:"距離感上手"}, message:{ja:"自由さと愛着の両方を大切にする相棒です。近づく時間と離れる時間の両方を楽しめる人に合いそうです。"}, file:"16_neko.png"},
+    {no:17, label:{ja:"犬",en:"Dog","zh-CN":"狗"}, type:{ja:"一緒に動く"}, message:{ja:"一緒に歩き、関わりを深く育てたい相棒です。反応が返ってくる関係を大切にする人に合いそうです。"}, file:"17_inu.png"},
+    {no:18, label:{ja:"リクガメ",en:"Tortoise","zh-CN":"陆龟"}, type:{ja:"長く見守る"}, message:{ja:"長い時間をかけて関係を育てる相棒です。急がず、続けることを大切にする人に合いそうです。"}, file:"18_rikugame.png"},
+    {no:19, label:{ja:"レオパ",en:"Leopard gecko","zh-CN":"豹纹守宫"}, type:{ja:"じっくり観察"}, message:{ja:"落ち着いた動きの中に個性が見える相棒です。静かに観察しながら関係を深めたい人に合いそうです。"}, file:"19_leopard_gecko.png"},
+    {no:20, label:{ja:"フェレット",en:"Ferret","zh-CN":"雪貂"}, type:{ja:"遊び好き"}, message:{ja:"遊びながら関係を作りたい人に合う相棒です。予想外の動きやいたずらっぽさも楽しめそうです。"}, file:"20_ferret.png"},
+    {no:21, label:{ja:"チンチラ",en:"Chinchilla","zh-CN":"龙猫"}, type:{ja:"やわらかい距離感"}, message:{ja:"触れたい気持ちと相手のペースの両方が大切な相棒です。やさしく待てる人に合いそうです。"}, file:"21_chinchilla.png"},
+    {no:22, label:{ja:"ペンギン",en:"Penguin","zh-CN":"企鹅"}, type:{ja:"水族館で会う"}, message:{ja:"てくてく進む勇気をくれる相棒です。一歩ずつ前に進むことを楽しめる人に合いそうです。"}, file:"22_penguin.png"},
+    {no:23, label:{ja:"アザラシ",en:"Seal","zh-CN":"海豹"}, type:{ja:"水族館で会う"}, message:{ja:"のんびりした安心感をくれる相棒です。力を抜いて一緒に過ごしたい人に合いそうです。"}, file:"23_azarashi.png"},
+    {no:24, label:{ja:"イルカ",en:"Dolphin","zh-CN":"海豚"}, type:{ja:"水族館で会う"}, message:{ja:"軽やかに進む気持ちをくれる相棒です。遊び心と知的なやりとりを楽しみたい人に合いそうです。"}, file:"24_iruka.png"},
+    {no:25, label:{ja:"カワウソ",en:"Otter","zh-CN":"水獭"}, type:{ja:"動物園・水族館で会う"}, message:{ja:"遊び心いっぱいの相棒です。楽しいことを見つけながら関係を育てたい人に合いそうです。"}, file:"25_kawauso.png"},
+    {no:26, label:{ja:"レッサーパンダ",en:"Red panda","zh-CN":"小熊猫"}, type:{ja:"動物園で会う"}, message:{ja:"かわいさとマイペースさの相棒です。ゆるやかな関係を大切にしたい人に合いそうです。"}, file:"26_lesser_panda.png"},
+    {no:27, label:{ja:"カピバラ",en:"Capybara","zh-CN":"水豚"}, type:{ja:"ほっと落ち着く"}, message:{ja:"穏やかな空気をくれる相棒です。無理なく自然体で関わりたい人に合いそうです。"}, file:"27_capybara.png"},
+    {no:28, label:{ja:"ライオン",en:"Lion","zh-CN":"狮子"}, type:{ja:"動物園で会う"}, message:{ja:"強さと誇りをくれる相棒です。大切なものを守る気持ちを持つ人に合いそうです。"}, file:"28_lion.png"},
+    {no:29, label:{ja:"ゾウ",en:"Elephant","zh-CN":"大象"}, type:{ja:"動物園で会う"}, message:{ja:"大きな安心感をくれる相棒です。ゆっくり深く覚えていく関係を大切にする人に合いそうです。"}, file:"29_zou.png"},
+    {no:30, label:{ja:"キリン",en:"Giraffe","zh-CN":"长颈鹿"}, type:{ja:"動物園で会う"}, message:{ja:"少し高い視点をくれる相棒です。ものごとを遠くから見て考えたい人に合いそうです。"}, file:"30_kirin.png"},
+    {no:31, label:{ja:"ハリネズミ",en:"Hedgehog","zh-CN":"刺猬"}, type:{ja:"そっと見守る"}, message:{ja:"相手のペースを大切にする関わりが似合う相棒です。無理に近づかず、少しずつ信頼を育てたい人に合いそうです。"}, file:"31_harinezumi.png"},
+    {no:32, label:{ja:"デグー",en:"Degu","zh-CN":"智利松鼠"}, type:{ja:"反応を楽しむ"}, message:{ja:"小さな反応を返してくれる相棒です。話しかけたり様子を見たりするのが好きな人に合いそうです。"}, file:"32_degu.png"},
+    {no:33, label:{ja:"ウーパールーパー",en:"Axolotl","zh-CN":"美西螈"}, type:{ja:"ふしぎを楽しむ"}, message:{ja:"不思議な見た目と静かな存在感のある相棒です。ちょっと変わった魅力を大切にする人に合いそうです。"}, file:"33_wooper_looper.png"},
+    {no:34, label:{ja:"イモリ",en:"Newt","zh-CN":"蝾螈"}, type:{ja:"じっくり観察"}, message:{ja:"小さな世界を静かに生きる相棒です。目立たない変化にも気づける人に合いそうです。"}, file:"34_imori.png"},
+    {no:35, label:{ja:"カエル",en:"Frog","zh-CN":"青蛙"}, type:{ja:"小さな変化を楽しむ"}, message:{ja:"ぴょんと動くたびに楽しい相棒です。変化の瞬間を楽しみたい人に合いそうです。"}, file:"35_kaeru.png"},
+    {no:36, label:{ja:"コーンスネーク",en:"Corn snake","zh-CN":"玉米蛇"}, type:{ja:"静かに寄りそう"}, message:{ja:"落ち着いた動きが魅力の相棒です。こわがらず、よく見て理解しようとする人に合いそうです。"}, file:"36_corn_snake.png"},
+    {no:37, label:{ja:"ニワトリ",en:"Chicken","zh-CN":"鸡"}, type:{ja:"朝を元気にする"}, message:{ja:"毎日にリズムをくれる相棒です。生活の中で自然に関わるのが好きな人に合いそうです。"}, file:"37_niwatori.png"},
+    {no:38, label:{ja:"ロバ",en:"Donkey","zh-CN":"驴"}, type:{ja:"ゆっくり支える"}, message:{ja:"焦らず進む気持ちをくれる相棒です。地道に続ける関係を大切にする人に合いそうです。"}, file:"38_roba.png"},
+    {no:39, label:{ja:"ヤギ",en:"Goat","zh-CN":"山羊"}, type:{ja:"のびのび触れ合う"}, message:{ja:"好奇心いっぱいの相棒です。気になることに近づいてみる力を持つ人に合いそうです。"}, file:"39_yagi.png"},
+    {no:40, label:{ja:"ヒツジ",en:"Sheep","zh-CN":"绵羊"}, type:{ja:"ほっと落ち着く"}, message:{ja:"ふわっと安心感をくれる相棒です。穏やかな空気を大切にしたい人に合いそうです。"}, file:"40_hitsuji.png"},
+    {no:41, label:{ja:"アルパカ",en:"Alpaca","zh-CN":"羊驼"}, type:{ja:"牧場で会う"}, message:{ja:"ふしぎな愛嬌のある相棒です。少しユーモアのある関係を楽しみたい人に合いそうです。"}, file:"41_alpaca.png"},
+    {no:42, label:{ja:"ミーアキャット",en:"Meerkat","zh-CN":"狐獴"}, type:{ja:"動物園で会う"}, message:{ja:"周りを見渡す勇気をくれる相棒です。小さな変化に早く気づく人に合いそうです。"}, file:"42_meerkat.png"},
+    {no:43, label:{ja:"フクロウ",en:"Owl","zh-CN":"猫头鹰"}, type:{ja:"動物園で会う"}, message:{ja:"静かなまなざしを感じる相棒です。すぐに答えを出さず、よく見て考える人に合いそうです。"}, file:"43_fukurou.png"},
+    {no:44, label:{ja:"ラッコ",en:"Sea otter","zh-CN":"海獭"}, type:{ja:"水族館で会う"}, message:{ja:"ぷかぷかした姿に癒される相棒です。安心できるものを大事に抱えていたい人に合いそうです。"}, file:"44_rakko.png"},
+    {no:45, label:{ja:"シロクマ",en:"Polar bear","zh-CN":"北极熊"}, type:{ja:"動物園で会う"}, message:{ja:"大きくて静かな力を感じる相棒です。ひとりでも進める強さを大切にする人に合いそうです。"}, file:"45_shirokuma.png"},
+    {no:46, label:{ja:"オオカミ",en:"Wolf","zh-CN":"狼"}, type:{ja:"静かな強さ"}, message:{ja:"群れと個の両方を大切にする相棒です。自分の意志を持ちながら、つながりも大事にする人に合いそうです。"}, file:"46_ookami.png"},
+    {no:47, label:{ja:"コアラ",en:"Koala","zh-CN":"考拉"}, type:{ja:"動物園で会う"}, message:{ja:"のんびり休む大切さを教えてくれる相棒です。がんばる時間と休む時間の両方を大切にする人に合いそうです。"}, file:"47_koala.png"},
+    {no:48, label:{ja:"パンダ",en:"Panda","zh-CN":"熊猫"}, type:{ja:"動物園で会う"}, message:{ja:"やさしい存在感で心をゆるめてくれる相棒です。見ているだけで安心できる関係を大切にする人に合いそうです。"}, file:"48_panda.png"},
+    {no:49, label:{ja:"カメレオン",en:"Chameleon","zh-CN":"变色龙"}, type:{ja:"変化を楽しむ"}, message:{ja:"状況に合わせて色を変えるように、柔らかく対応できる相棒です。変化を楽しめる人に合いそうです。"}, file:"49_chameleon.png"},
+    {no:50, label:{ja:"ナマケモノ",en:"Sloth","zh-CN":"树懒"}, type:{ja:"動物園で会う"}, message:{ja:"自分のペースを大切にしたい人に合う相棒です。ゆっくりでも続いていく関係を楽しめそうです。"}, file:"50_namakemono.png"}
   ];
 
   function localLabel(obj){ return obj?.[L()] || obj?.ja || ""; }
-  function localType(card){ return localLabel(card?.type) || (L()==="en" ? "Character" : L()==="zh-CN" ? "角色" : "キャラクター"); }
+  function localType(card){ return localLabel(card?.type) || (L()==="en" ? "Companion" : L()==="zh-CN" ? "伙伴" : "相棒"); }
   function localMessage(card){ return localLabel(card?.message) || ""; }
   /* ===========================================================
      図鑑・キャラクターカード画像 修正版
@@ -5900,9 +5900,9 @@ saveState();
 
   function companionCardTitle(card){
     const name = localLabel(card?.label);
-    if(L()==="en") return `Your perfect character is ${name}.`;
-    if(L()==="zh-CN") return `最适合你的角色是${name}。`;
-    return `あなたにぴったりなキャラクターは「${name}」です。`;
+    if(L()==="en") return `Your perfect companion is ${name}.`;
+    if(L()==="zh-CN") return `最适合你的伙伴是${name}。`;
+    return `あなたにぴったりな相棒は「${name}」です。`;
   }
 
   function companionSilhouetteHtml(card){
@@ -5916,39 +5916,39 @@ saveState();
   function resultTextByProfile(profile){
     const dict = {
       pet:{
-        ja:["ふれあいを大切にするキャラクター","なでたり、近くにいたりしながら、キャラクターとの距離を少しずつ縮めていけます。"],
-        en:["Character who enjoys closeness","This character suits someone who builds closeness by staying nearby and caring gently."],
-        "zh-CN":["喜欢亲近的角色","适合通过靠近和轻轻照护，慢慢拉近距离的人。"]
+        ja:["ふれあいを大切にする相棒","なでたり、近くにいたりしながら、相棒との距離を少しずつ縮めていけます。"],
+        en:["Companion who enjoys closeness","This companion suits someone who builds closeness by staying nearby and caring gently."],
+        "zh-CN":["喜欢亲近的伙伴","适合通过靠近和轻轻照护，慢慢拉近距离的人。"]
       },
       feed:{
-        ja:["ごはんで気持ちを返してくれるキャラクター","食べることや安心できるリズムを大切にしながら、関わりを育てていけます。"],
-        en:["Character who loves steady care","This character suits someone who values feeding, comfort, and a steady rhythm."],
-        "zh-CN":["喜欢稳定照护的角色","适合重视喂食、安心感和日常节奏的人。"]
+        ja:["ごはんで気持ちを返してくれる相棒","食べることや安心できるリズムを大切にしながら、関わりを育てていけます。"],
+        en:["Companion who loves steady care","This companion suits someone who values feeding, comfort, and a steady rhythm."],
+        "zh-CN":["喜欢稳定照护的伙伴","适合重视喂食、安心感和日常节奏的人。"]
       },
       outing:{
-        ja:["おでかけを楽しむキャラクター","一緒に体験することを通して、キャラクターとの関係をつくっていけます。"],
-        en:["Character who enjoys little adventures","This character suits someone who builds a relationship through shared experiences."],
-        "zh-CN":["喜欢外出的角色","适合通过共同体验来建立关系的人。"]
+        ja:["おでかけを楽しむ相棒","一緒に体験することを通して、相棒との関係をつくっていけます。"],
+        en:["Companion who enjoys little adventures","This companion suits someone who builds a relationship through shared experiences."],
+        "zh-CN":["喜欢外出的伙伴","适合通过共同体验来建立关系的人。"]
       },
       clean:{
-        ja:["こまめな見守りに応えてくれるキャラクター","小さな変化に気づきながら、キャラクターが安心できる環境を整えていけます。"],
-        en:["Character who responds to careful care","This character suits someone who notices small changes and keeps things comfortable."],
-        "zh-CN":["回应细心照护的角色","适合注意小变化、营造安心环境的人。"]
+        ja:["こまめな見守りに応えてくれる相棒","小さな変化に気づきながら、相棒が安心できる環境を整えていけます。"],
+        en:["Companion who responds to careful care","This companion suits someone who notices small changes and keeps things comfortable."],
+        "zh-CN":["回应细心照护的伙伴","适合注意小变化、营造安心环境的人。"]
       },
       memory:{
-        ja:["記憶を大切にしてくれるキャラクター","これまで一緒に過ごした時間や、反応のつながりを大切にしてくれるキャラクターです。"],
-        en:["Character who treasures shared memories","This character suits someone who values shared history and continuity."],
-        "zh-CN":["珍惜共同记忆的角色","适合重视一起度过的时间和关系连续感的人。"]
+        ja:["思い出を大切にしてくれる相棒","これまで一緒に過ごした時間や、反応のつながりを大切にしてくれる相棒です。"],
+        en:["Companion who treasures shared memories","This companion suits someone who values shared history and continuity."],
+        "zh-CN":["珍惜共同记忆的伙伴","适合重视一起度过的时间和关系连续感的人。"]
       },
       balanced:{
-        ja:["自然体で寄り添えるキャラクター","特別に意識していなくても、必要なところで自然に関わっていけるキャラクターです。"],
-        en:["Character who fits a natural rhythm","This character suits someone who cares naturally without forcing it."],
-        "zh-CN":["自然陪伴的角色","适合自然地照顾需要之处、不用力过度的人。"]
+        ja:["自然体で寄り添える相棒","特別に意識していなくても、必要なところで自然に関わっていける相棒です。"],
+        en:["Companion who fits a natural rhythm","This companion suits someone who cares naturally without forcing it."],
+        "zh-CN":["自然陪伴的伙伴","适合自然地照顾需要之处、不用力过度的人。"]
       },
       occasional:{
-        ja:["自分のペースで会いに来られるキャラクター","ずっと張りつくのではなく、自分のペースで思い出して会いに来られるキャラクターです。"],
-        en:["Character for your own pace","This character suits someone who comes back at their own pace rather than staying all the time."],
-        "zh-CN":["适合自己节奏的角色","适合按照自己的节奏想起它、来看它的人。"]
+        ja:["自分のペースで会いに来られる相棒","ずっと張りつくのではなく、自分のペースで思い出して会いに来られる相棒です。"],
+        en:["Companion for your own pace","This companion suits someone who comes back at their own pace rather than staying all the time."],
+        "zh-CN":["适合自己节奏的伙伴","适合按照自己的节奏想起它、来看它的人。"]
       }
     };
     const pair = dict[profile]?.[L()] || dict[profile]?.ja || dict.balanced.ja;
@@ -5995,15 +5995,15 @@ saveState();
     const logsOnly = !state.completed_survey;
     const basis = logsOnly
       ? (lang === "en"
-        ? "Selected as a character card using your care log so far."
+        ? "Selected as a companion card using your care log so far."
         : lang === "zh-CN"
-          ? "根据你到目前为止的照护日志，显示这张角色卡片。"
-          : "ここまでのお世話ログをもとに、キャラクターカードを表示しています。")
+          ? "根据你到目前为止的照护日志，显示这张伙伴卡片。"
+          : "ここまでのお世話ログをもとに、相棒カードを表示しています。")
       : (lang === "en"
-? "Selected as a character card using your care log and final survey answers."
+? "Selected as a companion card using your care log and final survey answers."
         : lang === "zh-CN"
-          ? "根据你的照护日志和最后问卷回答，显示这张角色卡片。"
-          : "5日間のお世話ログと最後のアンケート回答をもとに、キャラクターカードを表示しています。");
+          ? "根据你的照护日志和最后问卷回答，显示这张伙伴卡片。"
+          : "5日間のお世話ログと最後のアンケート回答をもとに、相棒カードを表示しています。");
     return {profile, pet, title:txt.title, text:txt.text, basis};
   }
 
@@ -6115,10 +6115,10 @@ saveState();
     const width = Math.round((heart / need) * 100);
     const lang = L();
     const help = lang === "en"
-      ? "When all four care meters are full, one heart is added. When 3 hearts are collected, one character card arrives."
+      ? "When all four care meters are full, one heart is added. When 3 hearts are collected, one companion card arrives."
       : lang === "zh-CN"
-        ? "4个照护条全部满时，爱心会增加1个。集满3个爱心后，会得到1张角色卡片。"
-        : "4つのお世話メーターがすべて満タンになると、ハートが1つ増えます。ハートが3つ集まると、キャラクターカードが1枚届きます。";
+        ? "4个照护条全部满时，爱心会增加1个。集满3个爱心后，会得到1张伙伴卡片。"
+        : "4つのお世話メーターがすべて満タンになると、ハートが1つ増えます。ハートが3つ集まると、相棒カードが1枚届きます。";
     return `
       <div class="zukanStatus">
         <strong>${esc(t("zukanTitle"))}</strong>
@@ -6245,10 +6245,10 @@ saveState();
       z.pending_notice = "";
       saveState();
       const msg = L()==="en"
-        ? `Today’s character cards are limited to ${CONFIG.ZUKAN_DAILY_CARD_LIMIT}. Please continue again tomorrow.`
+        ? `Today’s companion cards are limited to ${CONFIG.ZUKAN_DAILY_CARD_LIMIT}. Please continue again tomorrow.`
         : L()==="zh-CN"
-          ? `今天的角色卡片最多${CONFIG.ZUKAN_DAILY_CARD_LIMIT}张。请明天再继续。`
-          : `今日のキャラクターカードは${CONFIG.ZUKAN_DAILY_CARD_LIMIT}枚までです。明日また続けてください。`;
+          ? `今天的伙伴卡片最多${CONFIG.ZUKAN_DAILY_CARD_LIMIT}张。请明天再继续。`
+          : `今日の相棒カードは${CONFIG.ZUKAN_DAILY_CARD_LIMIT}枚までです。明日また続けてください。`;
       setTimeout(() => showMiniToast(msg), 120);
     }
   }
@@ -6290,11 +6290,12 @@ saveState();
 
 
   function safePublicGameUrl(){
-    if(CONFIG.PUBLIC_GAME_URL && String(CONFIG.PUBLIC_GAME_URL).trim()){
-      return String(CONFIG.PUBLIC_GAME_URL).trim();
-    }
+    // PCでHTMLを直接開いた際の file:///C:/... や、開発用localhostを共有しません。
+    // 公開サイトでは、HTTPSのURLから検索条件やハッシュを外して共有します。
     try{
-      const u = new URL(window.location.href);
+      const configured = String(CONFIG.PUBLIC_GAME_URL || "").trim();
+      const u = new URL(configured || window.location.href);
+      if(u.protocol !== "https:" || !u.hostname || u.hostname === "localhost" || u.hostname === "127.0.0.1") return "";
       u.search = "";
       u.hash = "";
       if(u.pathname.endsWith("/index.html")){
@@ -6312,9 +6313,9 @@ saveState();
 
   function shareLeadText(type){
     const name = shareCompanionName(type);
-    if(L()==="en") return `Your perfect character is ${name}.`;
-    if(L()==="zh-CN") return `最适合你的角色是${name}。`;
-    return `あなたにぴったりなキャラクターは${name}です。`;
+    if(L()==="en") return `Your perfect companion is ${name}.`;
+    if(L()==="zh-CN") return `最适合你的伙伴是${name}。`;
+    return `あなたにぴったりな相棒は${name}です。`;
   }
 
   function shareNativeText(type){
@@ -6323,15 +6324,15 @@ saveState();
 
   function shareInvitationText(type){
     const url = safePublicGameUrl();
-    return `${shareLeadText(type)}\n${url}`;
+    return url ? `${shareLeadText(type)}\n${url}` : shareLeadText(type);
   }
 
 
   function shareCardMainCatch(type){
     const name = shareCompanionName(type);
-    if(L()==="en") return `Your perfect character is\n${name}.`;
-    if(L()==="zh-CN") return `最适合你的角色是\n${name}。`;
-    return `あなたにぴったりなキャラクターは\n${name}です`;
+    if(L()==="en") return `Your perfect companion is\n${name}.`;
+    if(L()==="zh-CN") return `最适合你的伙伴是\n${name}。`;
+    return `あなたにぴったりな相棒は\n${name}です`;
   }
 
   function shareCardSubCatch(){
@@ -6342,7 +6343,7 @@ saveState();
     const lang = L();
     const dict = {
       title:{ja:"SNS共有用カード", en:"SNS share card", "zh-CN":"SNS分享卡片"},
-      subtitle:{ja:"投稿カードには、キャラクターのシルエット・キャラクター名・公開URLだけを載せます。研究IDや条件IDは載せません。", en:"The shared card only shows the character silhouette, character name, and public game URL. It does not show research IDs or condition IDs.", "zh-CN":"分享卡片只显示角色剪影、角色名称和公开URL，不显示研究ID或条件ID。"},
+      subtitle:{ja:"投稿カードには、相棒のシルエット・相棒の名前・公開URLだけを載せます。研究IDや条件IDは載せません。", en:"The shared card only shows the companion silhouette, companion name, and public game URL. It does not show research IDs or condition IDs.", "zh-CN":"分享卡片只显示伙伴剪影、伙伴名称和公开URL，不显示研究ID或条件ID。"},
       guide:{ja:"ゲームURL", en:"Game URL", "zh-CN":"游戏URL"},
       copy:{ja:"共有文をコピー", en:"Copy share text", "zh-CN":"复制分享文字"},
       sns:{ja:"SNSに投稿する", en:"Share to SNS", "zh-CN":"分享到SNS"},
@@ -6371,7 +6372,7 @@ saveState();
         <div id="sharePreviewCard" class="sharePreviewCard">
           <div class="sharePreviewImgWrap">${image}</div>
           <div class="sharePreviewCatch">${esc(shareCardMainCatch(type)).replace(/\n/g,"<br>")}</div>
-          <div class="shareUrlBox">${esc(url)}</div>
+          <div class="shareUrlBox">${esc(url || (L()==="ja" ? "公開サイトで開くとURLが表示されます" : L()==="en" ? "The URL appears on the published site" : "在公开网站中打开后会显示网址"))}</div>
         </div>
         <div class="shareNotice">${esc(shareSectionText("notice"))}</div>
         <div class="row" style="margin-top:12px">
@@ -6818,7 +6819,7 @@ saveState();
         </div>
         <p class="small">${esc(t("cardNote"))}</p>
         ${sharePreviewHtml(type)}
-        <p class="small">${esc(L()==="ja" ? "このあと、研究とは別にキャラクターとのお世話を続けることもできます。続ける場合は、ここから先は「つづきのお世話」として遊べます。" : L()==="en" ? "After this, you can keep caring for a character separately from the research part. If you continue, it will be Continued Care." : "之后，你也可以在研究部分之外继续照护角色。继续的话，这一部分是“继续照护”。")}</p>
+        <p class="small">${esc(L()==="ja" ? "このあと、研究とは別に相棒のお世話を続けることもできます。続ける場合は、ここから先は「つづきのお世話」として遊べます。" : L()==="en" ? "After this, you can keep caring for a companion separately from the research part. If you continue, it will be Continued Care." : "之后，你也可以在研究部分之外继续照护伙伴。继续的话，这一部分是“继续照护”。")}</p>
         <div class="row">
           <button id="continueFreeBtn" type="button">${esc(t("continueFree"))}</button>
           <button id="endBtn" class="secondary" type="button">${esc(t("end"))}</button>
