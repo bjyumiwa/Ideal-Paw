@@ -1194,6 +1194,45 @@
       color:#4b3c65;text-align:center;
     }
     .lotteryTicketCode{font-size:19px;font-weight:900;letter-spacing:.07em;word-break:break-all}
+  /* IdealPaw 2026-10-14: mini-game animation, isolated from care screen */
+.prediction-stage .prediction-pet{
+  width:220px;max-width:75vw;height:215px;
+  display:grid;place-items:center;position:relative;margin:8px auto;
+}
+.prediction-stage .prediction-pet-art{
+  width:198px;height:198px;max-width:65vw;
+  display:grid;place-items:center;
+  background-position:center;background-repeat:no-repeat;background-size:contain;
+  transform-origin:50% 82%;
+  filter:drop-shadow(0 13px 13px rgba(20,11,58,.18));
+  animation:none;will-change:transform;
+}
+.prediction-stage .prediction-pet-art.has-image .prediction-fallback-emoji{display:none}
+.prediction-stage .prediction-fallback-emoji{font-size:112px;line-height:1}
+.prediction-stage .prediction-sleep-z{
+  display:none;position:absolute;right:0;top:5px;color:#e0f6ff;
+  font-weight:900;font-size:30px;letter-spacing:3px;text-shadow:0 3px 10px #271e5d;
+  animation:ipMiniZzz 2.8s ease-in-out infinite;
+}
+.prediction-stage .prediction-pet.sleeping .prediction-sleep-z{display:block}
+.prediction-stage .prediction-pet.sleeping .prediction-pet-art{animation:ipMiniBreathe 2.8s ease-in-out infinite}
+.prediction-stage .prediction-pet.sleeping .prediction-pet-art:not(.has-image){animation:ipMiniFallbackSleep 2.8s ease-in-out infinite}
+.prediction-stage .prediction-pet.moving.pet-cat .prediction-pet-art{animation:ipMiniCat 1.65s ease-in-out infinite}
+.prediction-stage .prediction-pet.moving.pet-rabbit .prediction-pet-art{animation:ipMiniRabbit 1.15s ease-in-out infinite}
+.prediction-stage .prediction-pet.moving.pet-kangaroo .prediction-pet-art{animation:ipMiniKangaroo 1.45s ease-in-out infinite}
+.prediction-stage .prediction-pet.moving.pet-penguin .prediction-pet-art{animation:ipMiniPenguin 1.8s ease-in-out infinite}
+.prediction-stage .prediction-pet.moving.pet-seal .prediction-pet-art{animation:ipMiniSeal 2.1s ease-in-out infinite}
+.prediction-stage .prediction-pet.moving.pet-lizard .prediction-pet-art{animation:ipMiniLizard 1.5s ease-in-out infinite}
+@keyframes ipMiniCat{0%,13%{transform:rotate(0)}72%,100%{transform:rotate(360deg)}}
+@keyframes ipMiniRabbit{0%,50%,100%{transform:translateY(0) rotate(0)}23%{transform:translateY(-29px) rotate(-6deg)}73%{transform:translateY(-23px) rotate(6deg)}}
+@keyframes ipMiniKangaroo{0%,52%,100%{transform:translateY(0) scaleY(1)}14%{transform:translateY(4px) scaleY(.93)}34%{transform:translateY(-48px) scaleY(1.04)}76%{transform:translateY(-18px)}}
+@keyframes ipMiniPenguin{0%,100%{transform:translateX(-25px) rotate(-11deg)}25%{transform:translateX(-10px) rotate(11deg)}50%{transform:translateX(8px) rotate(-11deg)}75%{transform:translateX(25px) rotate(11deg)}}
+@keyframes ipMiniSeal{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+@keyframes ipMiniLizard{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(12px) rotate(8deg)}50%{transform:translateX(-8px) rotate(-7deg) scaleX(-1)}75%{transform:translateX(12px) rotate(9deg)}}
+@keyframes ipMiniBreathe{0%,100%{transform:translateY(4px) rotate(-9deg) scale(1,.94)}50%{transform:translateY(2px) rotate(-9deg) scale(1.035,.99)}}
+@keyframes ipMiniFallbackSleep{0%,100%{transform:translateY(15px) rotate(72deg) scale(.94)}50%{transform:translateY(10px) rotate(72deg) scale(.99)}}
+@keyframes ipMiniZzz{0%,100%{opacity:.35;transform:translateY(7px)}50%{opacity:1;transform:translateY(-8px)}}
+/* End IdealPaw mini-game animation */
   </style>
 </head>
 <body>
@@ -1258,7 +1297,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261013-v36.0",
+    APP_VERSION: "osewa-20261013-v36.0-motionname-20261014",
     // 通常版。抽選の当落は抽選専用Worker側で判定します。
     LOTTERY_IMMEDIATE_ENABLED: true,
     // 抽選専用Workerの公開URL。研究ログ用LOG_ENDPOINTとは別に管理します。
@@ -3862,6 +3901,34 @@ for(let day=1; day<=5; day++){
     if(hint) hint.classList.toggle("hidden",!counting);
     if(!counting) clearPredictionCountdownTimer();
   }
+  // Mini-game-only sprite: C2 changes appearance; C3 changes action identity.
+  function predictionCharacterHtml(character,action="waiting",behaviorId=""){
+    const mood=action==="sleep"?"sleep":"happy";
+    const src=character[mood] || character.happy;
+    const behavior=CHARACTERS.find(c=>c.id===behaviorId) || character;
+    const type=behavior.personality || "cat";
+    const phase=action==="move"?"moving":action==="sleep"?"sleeping":"waiting";
+    return `<div class="prediction-pet ${phase} pet-${esc(type)}">
+      <div class="prediction-pet-art" role="img" aria-label="${esc(character.label || type)}" data-image-path="${esc(src)}">
+        <span class="prediction-fallback-emoji">${esc(character.emoji || "🐾")}</span>
+      </div><span class="prediction-sleep-z" aria-hidden="true">Zzz</span>
+    </div>`;
+  }
+  function loadPredictionCharacterImage(){
+    const art=root.querySelector(".prediction-pet-art");
+    if(!art)return;
+    const src=art.getAttribute("data-image-path");
+    if(!src)return;
+    const image=new Image();
+    image.onload=()=>{
+      if(!art.isConnected)return;
+      art.style.backgroundImage=`url(${JSON.stringify(src)})`;
+      art.classList.add("has-image");
+    };
+    image.onerror=()=>{};
+    image.src=src;
+  }
+
   function renderPredictionGame(){
     clearPredictionCountdownTimer();
     if(!predictionAllowed()) return returnFromPredictionGame();
@@ -3903,7 +3970,7 @@ for(let day=1; day<=5; day++){
       <h2>🎮 ${esc(predictionText("firstToFive"))} ${userName} VS ${petName}</h2>
       <p class="small">${esc(predictionFormat("rule",{user:playerDisplay,pet:petDisplay}))}</p>
       <div class="prediction-instruction">${round.answered?esc(predictionText("resultTitle")):`${esc(predictionFormat("choicePrompt",{pet:petDisplay}))}<br>${esc(predictionText("waitCount"))}`}</div>
-      <div class="stage prediction-stage ${actionClass} ${demoMotion}">${characterHtml(c,round.answered && round.character_choice==="sleep"?"sleep":"happy")}</div>
+      <div class="stage prediction-stage">${predictionCharacterHtml(c,round.answered ? round.character_choice : "waiting",moveId)}</div>
       ${outcome}
       ${matchEnd}
       ${round.answered || match.finished ? "" : `<div class="predictionTimingArea">
@@ -3918,6 +3985,7 @@ for(let day=1; day<=5; day++){
       ${match.finished?`<button id="predictionRematch" class="wide" type="button">🔄 ${esc(predictionText("rematch"))}</button>`:round.answered?`<button id="predictionReplay" class="wide" type="button">${esc(predictionText("nextRound"))} →</button>`:""}
       <button id="predictionBack" class="secondary wide" type="button" style="margin-top:12px">${esc(predictionText(backKey))}</button>
     </section>`;
+    loadPredictionCharacterImage();
     $("predictionBack").addEventListener("click",returnFromPredictionGame);
     if(match.finished){
       $("predictionRematch").addEventListener("click",replayPredictionMatch);
@@ -5113,6 +5181,29 @@ saveState();
   }
 
 
+  // Name addressing is equal across conditions before Day 4.
+  // After Day 3, original C1-C4 memory handling is kept unchanged.
+  function careLineWithPlayerAddress(baseLine,action,day){
+    const player=playerCallName();
+    if(!player || !baseLine || state.sleeping || state.rest_state || day>3)return baseLine;
+    if(baseLine.includes(player))return baseLine;
+    if(!["look","pet","feed","outing","clean"].includes(action))return baseLine;
+    const used=state.care_name_greeting_days || (state.care_name_greeting_days={});
+    const marker=`${state.mode || "research"}-${day}`;
+    if(action==="look" && !used[marker]){
+      used[marker]=true;
+      saveState();
+      return L()==="ja" ? `${player}、今日も元気？ ${baseLine}` :
+        L()==="zh-CN" ? `${player}，今天还好吗？${baseLine}` :
+        `${player}, how are you today? ${baseLine}`;
+    }
+    if(action!=="look" && Math.random()<.35){
+      return L()==="ja" ? `${player}、${baseLine}` :
+        L()==="zh-CN" ? `${player}，${baseLine}` : `${player}, ${baseLine}`;
+    }
+    return baseLine;
+  }
+
   function renderGame(action="look", choice=""){
     if(routeToResearchIncompleteIfNeeded("game_route_missing_day")) return;
     if(openSurveyAfterDay5()) return;
@@ -5145,7 +5236,7 @@ saveState();
         ${researchDayInfoHtml(day)}
         <div class="stage">
           ${characterHtml(c,mood)}
-          <div class="speech" id="petSpeech">${esc(lineForPet(action, choice))}</div>
+          <div class="speech" id="petSpeech">${esc(careLineWithPlayerAddress(lineForPet(action, choice),action,day))}</div>
           <div class="hearts" id="hearts"></div>
         </div>
         ${careCueHtml()}
