@@ -1297,7 +1297,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261013-v36.0-motionname-20261014",
+    APP_VERSION: "osewa-20261014-v36.1-prediction-reopen-fix",
     // 通常版。抽選の当落は抽選専用Worker側で判定します。
     LOTTERY_IMMEDIATE_ENABLED: true,
     // 抽選専用Workerの公開URL。研究ログ用LOG_ENDPOINTとは別に管理します。
@@ -3845,7 +3845,20 @@ for(let day=1; day<=5; day++){
   function startPredictionGame(){
     if(!predictionAllowed()) return returnFromPredictionGame();
     clearPredictionCountdownTimer();
-    if(predictionMatch().finished) return renderPredictionGame();
+    const match=predictionMatch();
+    if(match.finished){
+      // 勝負終了後にお世話画面へ戻ると、戻る処理でラウンドだけが消えます。
+      // その状態で結果画面を再表示すると startPredictionGame と
+      // renderPredictionGame が互いに呼び合い、ボタンが動かなくなっていました。
+      // 終了した勝負の結果画面が残っているときは表示を維持し、
+      // お世話画面から新しく押された場合だけ新しい5点先取戦を開始します。
+      if(state.mini_game_round && state.mini_game_round.day===currentDay()){
+        state.screen="miniGame";
+        saveState();
+        return renderPredictionGame();
+      }
+      state.mini_game_match={day:currentDay(),player:0,pet:0,finished:false};
+    }
     // キャラクターの行動は先に等確率で決定し、カウントダウン後の選択と比較する。
     // ゲーム回数・勝敗は通常のお世話回数、コイン、抽選資格に影響しない。
     state.mini_game_round = {
