@@ -1511,9 +1511,9 @@
 
   // アンケート後の特典結果画面（メールアドレスは研究ログ・localStorageに記録しない）
   const IMMEDIATE_PRIZE_TEXT={
-    ja:{title:"プレゼント当選のお知らせ",checking:"抽選結果を確認しています…",pending:"回答の登録を確認しています。少しお待ちください。",failure:"まだ結果を確認できません。通信を確認して、もう一度お試しください。",retry:"結果をもう一度確認",win:"おめでとうございます！当選です！",lose:"ありがとうございました",loseHelp:"5日間のお世話とアンケートへのご協力、ありがとうございました。",claimHelp:"プレゼントの送付先メールアドレスを登録してください。研究アンケートとは別に、賞品送付のためだけに保管します。",email:"受取用メールアドレス",emailPlace:"example@example.com",submit:"メールアドレスを送信",submitting:"登録しています…",registered:"メールアドレスを登録しました。プレゼントは後日お送りします。",emailError:"有効なメールアドレスを入力してください。",emailFailed:"送信できませんでした。通信を確認してもう一度お試しください。",card:"相棒診断カードを見る",skip:"受取を登録せず診断カードへ",skipNote:"メール登録をしない場合はプレゼントをお送りできません。",later:"当選した方のメール登録へ戻る"},
-    en:{title:"Prize winner notification",checking:"Checking the result…",pending:"Waiting for the survey to be registered. Please wait.",failure:"We could not verify the result. Check your connection and retry.",retry:"Check again",win:"Congratulations! You won!",lose:"Thank you",loseHelp:"Thank you for five days of care and for completing the survey.",claimHelp:"Enter a delivery email address. This is stored separately from research responses and used only to send the prize.",email:"Email for prize delivery",emailPlace:"example@example.com",submit:"Submit email",submitting:"Registering…",registered:"Your email was recorded. Your prize will be sent later.",emailError:"Enter a valid email address.",emailFailed:"Could not register your email. Please retry.",card:"View companion card",skip:"View card without registering",skipNote:"Without an email address, we cannot send your gift card.",later:"Return to prize registration"},
-    "zh-CN":{title:"奖品中奖通知",checking:"正在确认结果…",pending:"正在确认问卷已记录，请稍候。",failure:"暂时无法确认结果，请检查网络并重试。",retry:"重新确认结果",win:"恭喜！你中奖了！",lose:"感谢参与",loseHelp:"感谢您完成五天照护及最终问卷。",claimHelp:"请输入礼品卡收取邮箱。邮箱单独保存，仅用于发送奖品。",email:"领取用邮箱",emailPlace:"example@example.com",submit:"提交邮箱",submitting:"正在登记…",registered:"邮箱登记成功。礼品卡将在稍后发送。",emailError:"请输入有效邮箱。",emailFailed:"无法登记邮箱，请重试。",card:"查看伙伴诊断卡",skip:"不登记邮箱，查看诊断卡",skipNote:"没有邮箱将无法寄送礼品卡。",later:"返回登记领奖邮箱"}
+    ja:{title:"プレゼント当選のお知らせ",checking:"抽選結果を確認しています…",pending:"回答の登録を確認しています。少しお待ちください。",failure:"まだ結果を確認できません。通信を確認して、もう一度お試しください。",retry:"結果をもう一度確認",win:"おめでとうございます！当選です！",lose:"今回は当たりませんでした",loseHelp:"5日間のお世話とアンケートへのご協力、ありがとうございました。",claimHelp:"プレゼントの送付先メールアドレスを登録してください。研究アンケートとは別に、賞品送付のためだけに保管します。",email:"受取用メールアドレス",emailPlace:"example@example.com",submit:"メールアドレスを送信",submitting:"登録しています…",registered:"メールアドレスを登録しました。プレゼントは後日お送りします。",emailError:"有効なメールアドレスを入力してください。",emailFailed:"送信できませんでした。通信を確認してもう一度お試しください。",card:"相棒診断カードを見る",skip:"受取を登録せず診断カードへ",skipNote:"メール登録をしない場合はプレゼントをお送りできません。",later:"当選した方のメール登録へ戻る"},
+    en:{title:"Prize winner notification",checking:"Checking the result…",pending:"Waiting for the survey to be registered. Please wait.",failure:"We could not verify the result. Check your connection and retry.",retry:"Check again",win:"Congratulations! You won!",lose:"Not a winner this time",loseHelp:"Thank you for five days of care and for completing the survey.",claimHelp:"Enter a delivery email address. This is stored separately from research responses and used only to send the prize.",email:"Email for prize delivery",emailPlace:"example@example.com",submit:"Submit email",submitting:"Registering…",registered:"Your email was recorded. Your prize will be sent later.",emailError:"Enter a valid email address.",emailFailed:"Could not register your email. Please retry.",card:"View companion card",skip:"View card without registering",skipNote:"Without an email address, we cannot send your gift card.",later:"Return to prize registration"},
+    "zh-CN":{title:"奖品中奖通知",checking:"正在确认结果…",pending:"正在确认问卷已记录，请稍候。",failure:"暂时无法确认结果，请检查网络并重试。",retry:"重新确认结果",win:"恭喜！你中奖了！",lose:"这次没有中奖",loseHelp:"感谢您完成五天照护及最终问卷。",claimHelp:"请输入礼品卡收取邮箱。邮箱单独保存，仅用于发送奖品。",email:"领取用邮箱",emailPlace:"example@example.com",submit:"提交邮箱",submitting:"正在登记…",registered:"邮箱登记成功。礼品卡将在稍后发送。",emailError:"请输入有效邮箱。",emailFailed:"无法登记邮箱，请重试。",card:"查看伙伴诊断卡",skip:"不登记邮箱，查看诊断卡",skipNote:"没有邮箱将无法寄送礼品卡。",later:"返回登记领奖邮箱"}
   };
   function ipText(key){return (IMMEDIATE_PRIZE_TEXT[L()]||IMMEDIATE_PRIZE_TEXT.ja)[key]||IMMEDIATE_PRIZE_TEXT.ja[key];}
   let immediateRequestInFlight=false;
@@ -1585,7 +1585,7 @@
     const ready=immediateApiReady();
     let content="";
     if(status==="lose"){
-      // 落選や当落結果の言葉は出さず、感謝だけを伝える。
+      // 当選しなかった場合は、やわらかな文言で結果を伝える。
       content=`<h2>${esc(ipText("lose"))}</h2><p>${esc(ipText("loseHelp"))}</p>
         <button type="button" id="lotteryNextBtn" class="wide">${esc(ipText("card"))}</button>`;
     }else if(status==="win"){
@@ -1602,7 +1602,7 @@
       content=`<h2>${esc(ipText("checking"))}</h2><p class="small" role="status">${esc(!ready||immediateLastError||immediateStatusAttempts>=12?ipText("failure"):ipText("pending"))}</p>
         <button type="button" id="lotteryRetryBtn" class="secondary wide">${esc(ipText("retry"))}</button>`;
     }
-    // 結果の見出しは当選者だけ。落選者に「抽選結果」は表示しない。
+    // 「プレゼント当選のお知らせ」の見出しは当選者だけに表示する。
     const prizeHeader=status==="win"?`<h2>${esc(ipText("title"))}</h2>`:"";
     root.innerHTML=`<section class="card">${prizeHeader}${content}</section>`;
     if($("lotteryRetryBtn"))$("lotteryRetryBtn").addEventListener("click",()=>{immediateStatusAttempts=0;immediateLastError=false;checkImmediateResult();});
