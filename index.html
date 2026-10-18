@@ -1297,7 +1297,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261014-v36.1-prediction-reopen-fix",
+    APP_VERSION: "osewa-20261018-v36.2-prize-countdown-localized",
     // 通常版。抽選の当落は抽選専用Worker側で判定します。
     LOTTERY_IMMEDIATE_ENABLED: true,
     // 抽選専用Workerの公開URL。研究ログ用LOG_ENDPOINTとは別に管理します。
@@ -1455,23 +1455,23 @@
   const LOTTERY_TEXT = {
     ja:{
       title:"🎁 プレゼントについて",
-      notice:"5日間のお世話とアンケートを完了すると、抽選でAmazonギフトカードまたはスターバックス カード（各3,000円分）が当たります。",
-      privacy:"当選者にのみお知らせします。",
+      notice:"5日間のお世話とアンケートを完了すると、所定の条件により、Amazonギフトカードまたはスターバックス カード（各3,000円分）が当たる場合があります。",
+      privacy:"アンケート終了後、結果が画面に表示されます。",
       ticketTitle:"抽選照合コード（控え）",
       ticketHelp:"このコードを保存してください。抽選結果の確認に使うための控えです。この画面に「当選」と表示されることはありません。",
       copy:"コードをコピー",copied:"コピーしました"
     },
     en:{
       title:"🎁 About the prizes",
-      notice:"Complete five days of care and the final survey for a chance to win a ¥3,000 Amazon Gift Card or Starbucks Card.",
-      privacy:"Only winners will be notified.",
+      notice:"After completing five days of care and the final survey, you may receive a ¥3,000 Amazon Gift Card or Starbucks Card according to the predetermined prize criteria.",
+      privacy:"Your result will be displayed after you submit the final survey.",
       ticketTitle:"Drawing reference code",ticketHelp:"Save this code to check the drawing outcome later. No win status is shown on this screen.",
       copy:"Copy code",copied:"Copied"
     },
     "zh-CN":{
       title:"🎁 关于奖品",
-      notice:"完成五天照护和最终问卷，即有机会获得价值3,000日元的亚马逊礼品卡或星巴克卡。",
-      privacy:"仅通知中奖者。",
+      notice:"完成五天照护和最终问卷，将根据预先规定的条件，有机会获得价值3,000日元的亚马逊礼品卡或星巴克卡。",
+      privacy:"完成最终问卷后，结果将在画面上显示。",
       ticketTitle:"抽奖核对代码",ticketHelp:"请保存此代码，供日后核对抽奖结果。此页面不会显示是否中奖。",
       copy:"复制代码",copied:"已复制"
     }
@@ -1511,14 +1511,61 @@
 
   // アンケート後の特典結果画面（メールアドレスは研究ログ・localStorageに記録しない）
   const IMMEDIATE_PRIZE_TEXT={
-    ja:{title:"プレゼント当選のお知らせ",checking:"抽選結果を確認しています…",pending:"回答の登録を確認しています。少しお待ちください。",failure:"まだ結果を確認できません。通信を確認して、もう一度お試しください。",retry:"結果をもう一度確認",win:"おめでとうございます！当選です！",lose:"今回は当たりませんでした",loseHelp:"5日間のお世話とアンケートへのご協力、ありがとうございました。",claimHelp:"プレゼントの送付先メールアドレスを登録してください。研究アンケートとは別に、賞品送付のためだけに保管します。",email:"受取用メールアドレス",emailPlace:"example@example.com",submit:"メールアドレスを送信",submitting:"登録しています…",registered:"メールアドレスを登録しました。プレゼントは後日お送りします。",emailError:"有効なメールアドレスを入力してください。",emailFailed:"送信できませんでした。通信を確認してもう一度お試しください。",card:"相棒診断カードを見る",skip:"受取を登録せず診断カードへ",skipNote:"メール登録をしない場合はプレゼントをお送りできません。",later:"当選した方のメール登録へ戻る"},
-    en:{title:"Prize winner notification",checking:"Checking the result…",pending:"Waiting for the survey to be registered. Please wait.",failure:"We could not verify the result. Check your connection and retry.",retry:"Check again",win:"Congratulations! You won!",lose:"Not a winner this time",loseHelp:"Thank you for five days of care and for completing the survey.",claimHelp:"Enter a delivery email address. This is stored separately from research responses and used only to send the prize.",email:"Email for prize delivery",emailPlace:"example@example.com",submit:"Submit email",submitting:"Registering…",registered:"Your email was recorded. Your prize will be sent later.",emailError:"Enter a valid email address.",emailFailed:"Could not register your email. Please retry.",card:"View companion card",skip:"View card without registering",skipNote:"Without an email address, we cannot send your gift card.",later:"Return to prize registration"},
-    "zh-CN":{title:"奖品中奖通知",checking:"正在确认结果…",pending:"正在确认问卷已记录，请稍候。",failure:"暂时无法确认结果，请检查网络并重试。",retry:"重新确认结果",win:"恭喜！你中奖了！",lose:"这次没有中奖",loseHelp:"感谢您完成五天照护及最终问卷。",claimHelp:"请输入礼品卡收取邮箱。邮箱单独保存，仅用于发送奖品。",email:"领取用邮箱",emailPlace:"example@example.com",submit:"提交邮箱",submitting:"正在登记…",registered:"邮箱登记成功。礼品卡将在稍后发送。",emailError:"请输入有效邮箱。",emailFailed:"无法登记邮箱，请重试。",card:"查看伙伴诊断卡",skip:"不登记邮箱，查看诊断卡",skipNote:"没有邮箱将无法寄送礼品卡。",later:"返回登记领奖邮箱"}
+    ja:{
+      title:"プレゼント当選のお知らせ",checking:"しばらくお待ちください",pending:"回答の登録を確認しています。少しお待ちください。",
+      failure:"まだ結果を確認できません。通信を確認して、もう一度お試しください。",retry:"結果をもう一度確認",
+      win:"🎉 あたり！",winLead:"おめでとうございます！ 特典が当たりました！",
+      lose:"ハズレ！",loseLead:"残念！ 特典は当たりませんでした。",
+      thanksCare:"5日間、お世話をしてくれてありがとうございました。",
+      claimHelp:"プレゼントの送付先メールアドレスを登録してください。研究アンケートとは別に、賞品送付のためだけに保管します。",
+      email:"受取用メールアドレス",emailPlace:"example@example.com",submit:"メールアドレスを送信",submitting:"登録しています…",
+      registered:"メールアドレスを登録しました。プレゼントは後日お送りします。",emailError:"有効なメールアドレスを入力してください。",
+      emailFailed:"送信できませんでした。通信を確認してもう一度お試しください。",
+      card:"相棒診断カードを見る",skip:"受取を登録せず診断カードへ",skipNote:"メール登録をしない場合はプレゼントをお送りできません。",later:"当選した方のメール登録へ戻る"
+    },
+    en:{
+      title:"Prize notification",checking:"Please wait a moment",pending:"Confirming your survey submission. Please wait.",
+      failure:"We could not verify the result yet. Check your connection and retry.",retry:"Check again",
+      win:"🎉 You won!",winLead:"Congratulations! You have won a prize!",
+      lose:"No prize this time",loseLead:"Unfortunately, you did not win a prize.",
+      thanksCare:"Thank you for the five days of care.",
+      claimHelp:"Enter a delivery email address. This is stored separately from research responses and used only to send the prize.",
+      email:"Email for prize delivery",emailPlace:"example@example.com",submit:"Submit email",submitting:"Registering…",
+      registered:"Your email was recorded. Your prize will be sent later.",emailError:"Enter a valid email address.",
+      emailFailed:"Could not register your email. Please retry.",
+      card:"View companion card",skip:"View card without registering",skipNote:"Without an email address, we cannot send your gift card.",later:"Return to prize registration"
+    },
+    "zh-CN":{
+      title:"奖品通知",checking:"请稍候",pending:"正在确认问卷已记录，请稍候。",
+      failure:"暂时无法确认结果，请检查网络并重试。",retry:"重新确认结果",
+      win:"🎉 中奖了！",winLead:"恭喜您！您获得了奖品！",
+      lose:"未中奖",loseLead:"很遗憾，您没有获得奖品。",
+      thanksCare:"感谢您五天来的照护。",
+      claimHelp:"请输入礼品卡收取邮箱。邮箱单独保存，仅用于发送奖品。",
+      email:"领取用邮箱",emailPlace:"example@example.com",submit:"提交邮箱",submitting:"正在登记…",
+      registered:"邮箱登记成功。礼品卡将在稍后发送。",emailError:"请输入有效邮箱。",
+      emailFailed:"无法登记邮箱，请重试。",
+      card:"查看伙伴诊断卡",skip:"不登记邮箱，查看诊断卡",skipNote:"没有邮箱将无法寄送礼品卡。",later:"返回登记领奖邮箱"
+    }
   };
   function ipText(key){return (IMMEDIATE_PRIZE_TEXT[L()]||IMMEDIATE_PRIZE_TEXT.ja)[key]||IMMEDIATE_PRIZE_TEXT.ja[key];}
   let immediateRequestInFlight=false;
   let immediateStatusAttempts=0;
   let immediateLastError=false;
+  // カウントダウンは結果の取得後に一度だけ開始。再読込しても途中から継続する。
+  let prizeRevealTimer=null;
+  function prizeCountdownNumber(){
+    const until=Date.parse(state.lottery_reveal_until || "");
+    return Number.isFinite(until) ? Math.max(0,Math.ceil((until-Date.now())/1000)) : 0;
+  }
+  function schedulePrizeRevealTick(){
+    if(prizeRevealTimer!==null)clearTimeout(prizeRevealTimer);
+    if(state.screen!=="lottery" || prizeCountdownNumber()<=0)return;
+    const remaining=prizeCountdownNumber();
+    if(remaining<=0){renderLotteryResult();return;}
+    prizeRevealTimer=setTimeout(()=>{prizeRevealTimer=null;if(state.screen==="lottery")renderLotteryResult();},1000);
+  }
+
   function immediateApiReady(){return CONFIG.LOTTERY_IMMEDIATE_ENABLED && /^https:\/\//.test(String(CONFIG.LOTTERY_API_ENDPOINT||""));}
   async function immediatePrizeRequest(action,email){
     if(!immediateApiReady())throw Error("lottery_not_configured");
@@ -1543,6 +1590,9 @@
       const response=await immediatePrizeRequest("status");
       immediateLastError=false;
       if(["win","lose"].includes(response.status)){
+        if(!["win","lose"].includes(state.lottery_result_status)){
+          state.lottery_reveal_until=new Date(Date.now()+5000).toISOString();
+        }
         state.lottery_result_status=response.status;
         if(response.status==="win")state.lottery_contact_submitted=!!response.contact_registered;
         saveState();
@@ -1579,17 +1629,21 @@
     }finally{immediateRequestInFlight=false;}
   }
   function renderLotteryResult(){
+    document.documentElement.lang=L();
     if(!CONFIG.LOTTERY_IMMEDIATE_ENABLED){state.screen="result";saveState();return renderResult();}
     if(!state.completed_survey){state.screen="survey";saveState();return renderSurvey();}
     const status=state.lottery_result_status||"pending";
     const ready=immediateApiReady();
     let content="";
-    if(status==="lose"){
-      // 当選しなかった場合は、やわらかな文言で結果を伝える。
-      content=`<h2>${esc(ipText("lose"))}</h2><p>${esc(ipText("loseHelp"))}</p>
+    if(["win","lose"].includes(status) && prizeCountdownNumber()>0){
+      content=`<div style="text-align:center;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px"><h2>${esc(ipText("checking"))}</h2><div role="status" aria-live="polite" style="font-size:clamp(64px,18vw,110px);font-weight:800">${prizeCountdownNumber()}</div></div>`;
+    }else if(status==="lose"){
+      content=`<div class="center"><h2>${esc(ipText("lose"))}</h2>
+        <p>${esc(ipText("loseLead"))}</p>
+        <p>${esc(ipText("thanksCare"))}</p></div>
         <button type="button" id="lotteryNextBtn" class="wide">${esc(ipText("card"))}</button>`;
     }else if(status==="win"){
-      content=`<h2>${esc(ipText("win"))}</h2>`+
+      content=`<div class="center"><h2>${esc(ipText("win"))}</h2><p>${esc(ipText("winLead"))}</p><p>${esc(ipText("thanksCare"))}</p></div>`+
         (state.lottery_contact_submitted
         ? `<p>${esc(ipText("registered"))}</p>`
         : `<p>${esc(ipText("claimHelp"))}</p><label for="immediatePrizeEmail">${esc(ipText("email"))}</label>
@@ -1603,8 +1657,9 @@
         <button type="button" id="lotteryRetryBtn" class="secondary wide">${esc(ipText("retry"))}</button>`;
     }
     // 「プレゼント当選のお知らせ」の見出しは当選者だけに表示する。
-    const prizeHeader=status==="win"?`<h2>${esc(ipText("title"))}</h2>`:"";
+    const prizeHeader=status==="win" && prizeCountdownNumber()===0?`<h2>${esc(ipText("title"))}</h2>`:"";
     root.innerHTML=`<section class="card">${prizeHeader}${content}</section>`;
+    if(prizeCountdownNumber()>0){schedulePrizeRevealTick();return;}
     if($("lotteryRetryBtn"))$("lotteryRetryBtn").addEventListener("click",()=>{immediateStatusAttempts=0;immediateLastError=false;checkImmediateResult();});
     if($("immediatePrizeSubmit"))$("immediatePrizeSubmit").addEventListener("click",submitImmediatePrizeEmail);
     if($("lotteryNextBtn"))$("lotteryNextBtn").addEventListener("click",()=>setScreen("result"));
@@ -2763,6 +2818,7 @@
       lottery_ticket_code:"",
       lottery_joined_at:"",
       lottery_result_status:"pending",
+      lottery_reveal_until:"",
       lottery_contact_submitted:false,
       completed_survey:false,
       survey_auto_opened_at:"",
@@ -2872,7 +2928,7 @@
       "return_started_at","return_completed","return_completed_at","name_cue_days",
       "mode","research_day_care","research_completion_status","research_completed_at",
       "research_incomplete_at","research_incomplete_reason","research_missing_days","reward_eligible",
-      "completed_survey","lottery_ticket_code","lottery_joined_at","lottery_result_status","lottery_contact_submitted","survey_auto_opened_at","debrief_shown_at","logs","free_logs","zukan",
+      "completed_survey","lottery_ticket_code","lottery_joined_at","lottery_result_status","lottery_reveal_until","lottery_contact_submitted","survey_auto_opened_at","debrief_shown_at","logs","free_logs","zukan",
       "tips_shown","tips_logged","screen"
     ];
     const snapshot = {};
@@ -3770,6 +3826,7 @@ for(let day=1; day<=5; day++){
     renderIntro();
   }
   function setScreen(screen){
+    if(screen!=="lottery" && prizeRevealTimer!==null){clearTimeout(prizeRevealTimer);prizeRevealTimer=null;}
     state.screen = screen;
     saveState();
     render();
@@ -5879,6 +5936,7 @@ saveState();
     state.research_completed_at=state.research_completed_at||new Date().toISOString();
     state.reward_eligible=true;
     state.lottery_result_status="pending";
+    state.lottery_reveal_until="";
     state.lottery_contact_submitted=false;
     state.screen=CONFIG.LOTTERY_IMMEDIATE_ENABLED?"lottery":"result";
     saveState();
