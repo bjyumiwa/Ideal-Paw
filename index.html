@@ -1297,7 +1297,7 @@
   "use strict";
 
   const CONFIG = {
-    APP_VERSION: "osewa-20261025-v36.3-participation-prize-end-code",
+    APP_VERSION: "osewa-20261026-v36.4-endcode-existing-research-id",
     // 通常版。抽選の当落は抽選専用Worker側で判定します。
     LOTTERY_IMMEDIATE_ENABLED: true,
     // 抽選専用Workerの公開URL。研究ログ用LOG_ENDPOINTとは別に管理します。
@@ -2818,6 +2818,8 @@
       // この改修以降に初めて始めた参加者のみ参加賞引換コードを表示します。
       // 旧版からの参加者は loadState() で false に移行し、二重配布を避けます。
       participation_prize_code_eligible:true,
+      // この2026-10-26版から開始した端末だけ研究IDを参加賞コードとして表示。
+      participation_prize_verified_id_eligible:true,
       participation_prize_end_code:"",
       lottery_ticket_code:"",
       lottery_joined_at:"",
@@ -2856,6 +2858,11 @@
       if(!Object.prototype.hasOwnProperty.call(saved, "participation_prize_code_eligible")){
         merged.participation_prize_code_eligible = false;
         merged.participation_prize_end_code = "";
+      }
+      // 今回の変更前に開始済みの端末は、以前のフラグがtrueであっても
+      // 参加賞受取済みとして「研究IDによる終了コード」を表示しません。
+      if(!Object.prototype.hasOwnProperty.call(saved, "participation_prize_verified_id_eligible")){
+        merged.participation_prize_verified_id_eligible = false;
       }
       // 旧版の「死・復活」状態を、新しい「手紙・帰宅」状態へ引き継ぎます。
       if(!merged.letter_shown_at && saved.loss_event_at) merged.letter_shown_at = saved.loss_event_at;
@@ -2939,6 +2946,7 @@
       "return_started_at","return_completed","return_completed_at","name_cue_days",
       "mode","research_day_care","research_completion_status","research_completed_at",
       "research_incomplete_at","research_incomplete_reason","research_missing_days","reward_eligible",
+      "participation_prize_code_eligible","participation_prize_verified_id_eligible",
       "completed_survey","lottery_ticket_code","lottery_joined_at","lottery_result_status","lottery_reveal_until","lottery_contact_submitted","survey_auto_opened_at","debrief_shown_at","logs","free_logs","zukan",
       "tips_shown","tips_logged","screen"
     ];
@@ -7081,31 +7089,34 @@ saveState();
 
 
   // ===========================================================
-  // 参加賞「終了コード」。抽選照合コード／研究ID／復元コードとは別です。
-  // - この版で新規開始した参加者だけ表示（旧版の端末は自動的に対象外）。
+  // 参加賞「終了コード」。既存の研究IDを表示するだけの変更です。
+  // - この機能を導入後に新規開始した参加者だけ表示（旧版の端末は対象外）。
   // - 5日のお世話＆最後のアンケート送信後、「終わる」を押した時だけ表示。
-  // - 初回表示でランダム発行し、端末内に保存。再表示しても同じ番号。
-  // - 引換情報は研究ログへ送らない。受取済み管理は配布担当側で行います。
+  // - 既存の研究ID（ログの research_id 列）をそのまま照合コードに使います。
+  //   新たな乱数・連番発行やサーバー変更はしません。
+  // - ギフト券の抽選処理・研究ID発行方法・研究ログ形式は一切変更しません。
+  // - 配布担当者はログの event_type=survey_submit と research_id を照合し、
+  //   参加賞受取済みの管理は別の台帳で行います（氏名と研究回答を結びつけない）。
   // ===========================================================
   const PARTICIPATION_PRIZE_END_TEXT = {
     ja:{
       title:"参加賞をまだ受け取っていない方へ",
       lead:"参加賞の受け取りには、下の終了コードを担当者に提示してください。",
-      code:"終了コード",
+      code:"終了コード（研究ログ照合用ID）",
       note:"すでに参加賞を受け取った方は提示不要です。このコードは抽選結果とは関係ありません。",
       copy:"終了コードをコピー", copied:"コピーしました"
     },
     en:{
       title:"For participants who have not received the participation gift",
       lead:"Show this completion code to the staff member when collecting your participation gift.",
-      code:"Completion code",
+      code:"Completion code (log reference ID)",
       note:"You do not need this code if you already received your gift. This is separate from the prize drawing.",
       copy:"Copy completion code",copied:"Copied"
     },
     "zh-CN":{
       title:"尚未领取参与纪念品的参加者",
       lead:"领取参与纪念品时，请向工作人员出示以下结束码。",
-      code:"结束码",
+      code:"结束码（记录核对ID）",
       note:"已经领取过纪念品的参加者无需出示。此码与抽奖结果无关。",
       copy:"复制结束码",copied:"已复制"
     }
@@ -7115,18 +7126,15 @@ saveState();
     return lang[key] || PARTICIPATION_PRIZE_END_TEXT.ja[key] || key;
   }
   function participationPrizeEndCodeIsAllowed(){
-    if(!state.participation_prize_code_eligible || !state.completed_survey) return false;
+    if(!state.participation_prize_code_eligible || !state.participation_prize_verified_id_eligible || !state.completed_survey) return false;
     if(!["survey_complete","legacy_survey_complete"].includes(state.research_completion_status)) return false;
     return researchFiveDayCareComplete();
   }
   function ensureParticipationPrizeEndCode(){
     if(!participationPrizeEndCodeIsAllowed()) return "";
-    if(!state.participation_prize_end_code){
-      const raw = randomSecureString(10).toUpperCase();
-      state.participation_prize_end_code = `IP-END-${raw.slice(0,5)}-${raw.slice(5,10)}`;
-      saveState();
-    }
-    return state.participation_prize_end_code;
+    // 研究ログに必ず残る既存の research_id を表示します。
+    // 従来のランダムな参加賞コードは発行せず、研究IDも書き換えません。
+    return String(state.research_id || "");
   }
   function participationPrizeEndCodeHtml(){
     const code = ensureParticipationPrizeEndCode();
@@ -7142,13 +7150,14 @@ saveState();
   }
   function bindParticipationPrizeEndCodeButton(){
     const btn = $("copyParticipationPrizeEndCodeBtn");
-    if(!btn || !state.participation_prize_end_code) return;
+    const code = ensureParticipationPrizeEndCode();
+    if(!btn || !code) return;
     btn.addEventListener("click", async () => {
       try{
-        await navigator.clipboard.writeText(state.participation_prize_end_code);
+        await navigator.clipboard.writeText(code);
         btn.textContent = participationPrizeEndText("copied");
       }catch(_error){
-        window.prompt(participationPrizeEndText("copy"), state.participation_prize_end_code);
+        window.prompt(participationPrizeEndText("copy"), code);
       }
     });
   }
